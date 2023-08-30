@@ -35,6 +35,15 @@ monthlyRate <- function(x) {
   (1+(x/100))^(1/12)
 }
 
+# colours and settings
+
+linesize <- 1.2
+thf_blue <- "#53a9cd"
+thf_lightblue <- "#7ebfda"
+thf_red <- "#dd0031"
+thf_pink <- "#ee7174"
+thf_purple <- "#744284"
+
 ##### User interface #####
 ui <- fluidPage(
   titlePanel("Create your own waiting list scenarios"),
@@ -46,7 +55,7 @@ ui <- fluidPage(
                 sidebarPanel(
                   
                   # add help text at top
-                  helpText("Choose parameters"),
+                  h2("Choose parameters"),
                   
                   # include seasonality
                   radioButtons("seasonality",
@@ -113,9 +122,6 @@ ui <- fluidPage(
                 
                 # add graph and title in main panel
                 mainPanel(
-                  
-                  # title
-                  h1("New referrals and completed pathways", align = "center"),
                   
                   # plot referrals and outflow
                   plotOutput("referrals_plot"),
@@ -187,30 +193,46 @@ server <- function(input, output) {
 
     
   #### Referrals and completed plot ####
+  # To do: can the if/else be implemented into one ggplot code so easier to update with colours etc.?
+  
   output$referrals_plot <- renderPlot(
-    {
+    { 
       if (input$seasonality == "linear") {
       # Plot referrals and completeds on same graph
         predictions() %>% 
           ggplot(aes(x = month_year)) +
-          geom_line(aes(y = total_activity), color = "blue") +
-          geom_line(aes(y = new_referrals), color = "red") +
-          geom_line(aes(y = referrals_trend), color = "red") +
-          geom_line(aes(y = activity_trend), color = "blue") +
-          geom_line(aes(y = referrals_pred)) +
-          geom_line(aes(y = outflow_pred)) +
-          scale_x_date(limits = c(ymd("2016-04-01"), ymd("2025-02-01"))) 
+          geom_line(aes(y = total_activity), color = thf_blue, size = linesize) +
+          geom_line(aes(y = new_referrals), color = thf_red, size = linesize) +
+          geom_line(aes(y = referrals_trend), color = thf_pink, size = linesize) +
+          geom_line(aes(y = activity_trend), color = thf_lightblue, size = linesize) +
+          geom_line(aes(y = referrals_pred), color = thf_pink, linetype = 2, size = linesize) +
+          geom_line(aes(y = outflow_pred), color = thf_lightblue, linetype = 2, size = linesize) +
+          scale_x_date(date_breaks = "1 year"
+                       , date_minor_breaks = "3 months"
+                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                       , date_labels = "%Y") +
+          theme_minimal() +
+          xlab("Months") +
+          ylab("Number of referrals and completed pathways") +
+          ggtitle("New referrals and completed pathways")
       }
       
       else {
         # Plot referrals and completeds on same graph
         predictions() %>% 
           ggplot(aes(x = month_year)) +
-          geom_line(aes(y = total_activity), color = "blue") +
-          geom_line(aes(y = new_referrals), color = "red") +
-          geom_line(aes(y = referrals_pred_seasonal)) +
-          geom_line(aes(y = outflow_pred_seasonal)) +
-          scale_x_date(limits = c(ymd("2016-04-01"), ymd("2025-02-01")))   
+          geom_line(aes(y = total_activity), color = thf_blue, size = linesize) +
+          geom_line(aes(y = new_referrals), color = thf_red, size = linesize) +
+          geom_line(aes(y = referrals_pred_seasonal), color = thf_pink, linetype = 2, size = linesize) +
+          geom_line(aes(y = outflow_pred_seasonal), color = thf_lightblue, linetype = 2, size = linesize) +
+          scale_x_date(date_breaks = "1 year"
+                       , date_minor_breaks = "3 months"
+                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                       , date_labels = "%Y") +
+          theme_minimal() +          
+          xlab("Months") +
+          ylab("Number of referrals and completed pathways") +
+          ggtitle("New referrals and completed pathways")
       }
         
     }
@@ -224,20 +246,34 @@ server <- function(input, output) {
     {
       if (input$seasonality == "linear"){
         # Plot waiting list without seasonality
-        predictions() %>% 
+        predictions() %>%
           ggplot(aes(x = month_year)) +
-          geom_col(aes(y = waiting_list)) +
-          geom_col(aes(y = waiting_list_pred), fill = "red") +
-          scale_x_date(limits = c(ymd("2016-04-01"), ymd("2025-02-01")))
+          geom_col(aes(y = waiting_list), fill = thf_purple) +
+          geom_col(aes(y = waiting_list_pred), fill = thf_purple, alpha = 0.8) +
+          scale_x_date(date_breaks = "1 year"
+                       , date_minor_breaks = "3 months"
+                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                       , date_labels = "%Y") +
+          theme_minimal() +
+          xlab("Months") +
+          ylab("Waiting list size") +
+          ggtitle("Waiting list")
       }
-      
+
       else {
         # Plot waiting list with seasonality
-        predictions() %>% 
+        predictions() %>%
           ggplot(aes(x = month_year)) +
-          geom_col(aes(y = waiting_list)) +
-          geom_col(aes(y = waiting_list_pred_seasonal), fill = "red") +
-          scale_x_date(limits = c(ymd("2016-04-01"), ymd("2025-02-01")))
+          geom_col(aes(y = waiting_list), fill = thf_purple) +
+          geom_col(aes(y = waiting_list_pred_seasonal), fill = thf_purple, alpha = 0.8) +
+          scale_x_date(date_breaks = "1 year"
+                       , date_minor_breaks = "3 months"
+                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                       , date_labels = "%Y") +
+          theme_minimal() +          
+          xlab("Months") +
+          ylab("Waiting list size") +
+          ggtitle("Waiting list")
       }
     }
   )
