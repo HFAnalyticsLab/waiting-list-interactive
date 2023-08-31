@@ -43,6 +43,14 @@ thf_lightblue <- "#7ebfda"
 thf_red <- "#dd0031"
 thf_pink <- "#ee7174"
 thf_purple <- "#744284"
+thf_teal <- "#2a7979"
+
+colors <- c("New referrals" = thf_red
+            , "Total outflow" = thf_blue
+            , "Predicted referrals" = thf_lightblue
+            , "Predicted outflow" = thf_pink
+            , "Waiting list" = thf_purple
+            , "Predicted waiting list" = thf_teal)
 
 ##### User interface #####
 ui <- fluidPage(
@@ -171,8 +179,8 @@ server <- function(input, output) {
              , consultant_strike_days =  case_when(ceiling(input$consultant/2) > month_no & month_no > 0 ~ 2
                                                    , ceiling(input$consultant/2) == month_no ~ input$consultant %% 2
                                                    , TRUE ~ 0)
-             , jr_dr_cancellations = jr_dr_strike_days * jr_dr_perc_consultant_led * jr_dr_daily_cancel * (input$intensity/100)^(month_no-1)
-             , consultant_cancellations = consultant_strike_days * consultant_daily_cancel * (input$intensity/100)^(month_no-1)
+             , jr_dr_cancellations = jr_dr_strike_days * jr_dr_perc_consultant_led * jr_dr_daily_cancel * (input$intensity/100)^(month_no)
+             , consultant_cancellations = consultant_strike_days * consultant_daily_cancel * (input$intensity/100)^(month_no)
              ) %>%
 
       mutate(outflow_pred = outflow_pred - jr_dr_cancellations - consultant_cancellations
