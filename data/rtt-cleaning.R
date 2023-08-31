@@ -79,7 +79,7 @@ rtt_data$activity_trend <- c(pre_pandemic_activity_line, rep(NA_real_, 14), post
 ###### daily seasonality #####
 
 # read in CSV with number of working days each month 
-workdays <- read.csv("working-days-table.csv") %>% 
+workdays <- read.csv("data/working-days-table.csv") %>% 
   mutate(month_year = ymd(month_year))
 
 rtt_data <- rtt_data %>% 
@@ -107,7 +107,7 @@ seasonality <- rtt_data %>%
             , activity_seasonality = mean(activity_diff))
 
 ##### Save data to use in app #####
-saveRDS(rtt_data, "data/rtt_data.RDS")
+saveRDS(rtt_data, "data/rtt_data.RDS", compress = FALSE)
 
-saveRDS(seasonality, "data/seasonality.RDS")
+saveRDS(seasonality, "data/seasonality.RDS", compress = FALSE)
 

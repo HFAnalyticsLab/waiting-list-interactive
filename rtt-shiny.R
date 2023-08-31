@@ -11,8 +11,8 @@ library(shiny)
 
 ##### Load data #####
 
-rtt_data <- readRDS("rtt_data.RDS")
-seasonality <- readRDS("seasonality.RDS")
+rtt_data <- readRDS("data/rtt_data.RDS")
+seasonality <- readRDS("data/seasonality.RDS")
 
 ##### Calculations outside shiny ####
 
@@ -283,7 +283,7 @@ server <- function(input, output) {
 
 ##### Run app #####
 
-# shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
 
-profvis::profvis(runApp(shinyApp(ui, server)))
+# profvis::profvis(runApp(shinyApp(ui, server)))
 
