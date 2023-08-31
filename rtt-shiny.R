@@ -1,13 +1,10 @@
 ## Elective care pledge Shiny app ##
 
-
-# clear workspace
-rm(list = ls()) 
-
-# load libraries
+# load packages
 library(janitor)
-library(tidyverse)
-library(shiny)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
 
 ##### Load data #####
 
