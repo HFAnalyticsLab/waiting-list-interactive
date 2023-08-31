@@ -13,7 +13,7 @@ library(zoo)
 # this has been *slightly* cleaned in excel (made top merged row into part of the column headers and got rid of blank rows)--
 # could be done in R to make it completely reproducible, maybe using existing pipeline 
 
-rtt_data_raw <- read_excel("RTT_Shiny/rtt-data.xlsx", na = "-") %>% clean_names()
+rtt_data_raw <- read_excel("data/rtt-data.xlsx", na = "-") %>% clean_names()
 
 latest_data <- ymd("2023-06-01")
 
@@ -107,7 +107,7 @@ seasonality <- rtt_data %>%
             , activity_seasonality = mean(activity_diff))
 
 ##### Save data to use in app #####
-saveRDS(rtt_data, "RTT_Shiny/rtt_data.RDS")
+saveRDS(rtt_data, "data/rtt_data.RDS")
 
-saveRDS(seasonality, "RTT_Shiny/seasonality.RDS")
+saveRDS(seasonality, "data/seasonality.RDS")
 
