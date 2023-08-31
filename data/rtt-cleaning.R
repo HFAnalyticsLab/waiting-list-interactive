@@ -1,12 +1,10 @@
 ##### RTT Data Cleaning for Shiny app #####
 
-# clear workspace
-rm(list = ls()) 
-
-# load libraries
+# load packages
 library(readxl)
 library(janitor)
-library(tidyverse)
+library(lubridate)
+library(dplyr)
 library(zoo)
 
 # load CSV of data
