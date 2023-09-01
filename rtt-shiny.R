@@ -2,9 +2,11 @@
 
 # load packages
 library(janitor)
+
 library(lubridate)
 library(dplyr)
 library(ggplot2)
+library(scales)
 
 ##### Load data #####
 
@@ -21,6 +23,7 @@ latest_outflow <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend
 latest_waitlist <- rtt_data[rtt_data$month_year == latest_data,]$waiting_list
 latest_referrals_actual <- rtt_data[rtt_data$month_year == latest_data,]$new_referrals
 latest_outflow_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
+waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-01",]$waiting_list
 
 # fixed assumptions
 jr_dr_perc_consultant_led <- 0.80
@@ -40,10 +43,18 @@ thf_lightblue <- "#7ebfda"
 thf_red <- "#dd0031"
 thf_pink <- "#ee7174"
 thf_purple <- "#744284"
+thf_teal <- "#2a7979"
+
+colors <- c("New referrals" = thf_red
+            , "Total outflow" = thf_blue
+            , "Predicted referrals" = thf_pink
+            , "Predicted outflow" = thf_lightblue
+            , "Waiting list" = thf_purple
+            , "Predicted waiting list" = thf_teal)
 
 ##### User interface #####
 ui <- fluidPage(
-  titlePanel("Create your own waiting list scenarios"),
+  titlePanel("Waiting list interactive calculator"),
   
   # set the layout
   sidebarLayout(position = "left",
@@ -52,7 +63,7 @@ ui <- fluidPage(
                 sidebarPanel(
                   
                   # add help text at top
-                  h2("Choose parameters"),
+                  h4("Choose parameters"),
                   
                   # include seasonality
                   radioButtons("seasonality",
@@ -67,7 +78,7 @@ ui <- fluidPage(
         
                   # number to choose referrals increases
                   numericInput("referrals_change", 
-                               h3("Referrals percent change per year"), 
+                               "Referrals percent change per year", 
                                min = -100,
                                max = 100, 
                                value = 5
@@ -75,7 +86,7 @@ ui <- fluidPage(
                   
                   # number to choose outflow increases
                   numericInput("outflow_change", 
-                               h3("Completed pathways percent change per year"), 
+                               "Completed pathways percent change per year", 
                                min = -100,
                                max = 100, 
                                value = 5
@@ -88,7 +99,7 @@ ui <- fluidPage(
                   
                   # number of junior doctor strike days to include
                   numericInput("jr_drs", 
-                               h3("Number of junior doctor strike days to include"), 
+                               "Number of junior doctor strike days to include", 
                                min = 0,
                                max = 57, 
                                value = 6 
@@ -96,7 +107,7 @@ ui <- fluidPage(
                   
                   # number of consultant strike days to include
                   numericInput("consultant", 
-                               h3("Number of consultant strike days to include"), 
+                               "Number of consultant strike days to include", 
                                min = 0,
                                max = 38, 
                                value = 4 
@@ -104,7 +115,7 @@ ui <- fluidPage(
                  
                    # strike intensity
                   numericInput("intensity", 
-                               h3("Strike intensity %"), 
+                               "Strike intensity %", 
                                min = 0,
                                max = 100, 
                                value = 85
@@ -113,8 +124,10 @@ ui <- fluidPage(
                   # help text on strikes
                   helpText("Strike days will be incorporated in the first few months, 
                            with 3 days per month (for junior doctors) or 2 days per month
-                           (for consultants) until the number of inputted strike days is reached")
+                           (for consultants) until the number of inputted strike days is reached"),
                   
+                  width = 2
+              
                 ),
                 
                 # add graph and title in main panel
@@ -168,8 +181,8 @@ server <- function(input, output) {
              , consultant_strike_days =  case_when(ceiling(input$consultant/2) > month_no & month_no > 0 ~ 2
                                                    , ceiling(input$consultant/2) == month_no ~ input$consultant %% 2
                                                    , TRUE ~ 0)
-             , jr_dr_cancellations = jr_dr_strike_days * jr_dr_perc_consultant_led * jr_dr_daily_cancel * (input$intensity/100)^(month_no-1)
-             , consultant_cancellations = consultant_strike_days * consultant_daily_cancel * (input$intensity/100)^(month_no-1)
+             , jr_dr_cancellations = jr_dr_strike_days * jr_dr_perc_consultant_led * jr_dr_daily_cancel * (input$intensity/100)^(month_no)
+             , consultant_cancellations = consultant_strike_days * consultant_daily_cancel * (input$intensity/100)^(month_no)
              ) %>%
 
       mutate(outflow_pred = outflow_pred - jr_dr_cancellations - consultant_cancellations
@@ -198,38 +211,55 @@ server <- function(input, output) {
       # Plot referrals and completeds on same graph
         predictions() %>% 
           ggplot(aes(x = month_year)) +
-          geom_line(aes(y = total_activity), color = thf_blue, size = linesize) +
-          geom_line(aes(y = new_referrals), color = thf_red, size = linesize) +
-          geom_line(aes(y = referrals_trend), color = thf_pink, size = linesize) +
-          geom_line(aes(y = activity_trend), color = thf_lightblue, size = linesize) +
-          geom_line(aes(y = referrals_pred), color = thf_pink, linetype = 2, size = linesize) +
-          geom_line(aes(y = outflow_pred), color = thf_lightblue, linetype = 2, size = linesize) +
+          geom_line(aes(y = total_activity, color = "Total outflow"), size = linesize) +
+          geom_line(aes(y = new_referrals, color = "New referrals"), size = linesize) +
+          geom_line(aes(y = referrals_trend, color = "Predicted referrals"), size = linesize) +
+          geom_line(aes(y = activity_trend, color = "Predicted outflow"), size = linesize) +
+          geom_line(aes(y = referrals_pred, color = "Predicted referrals"), linetype = 2, size = linesize) +
+          geom_line(aes(y = outflow_pred, color = "Predicted outflow"), linetype = 2, size = linesize) +
           scale_x_date(date_breaks = "1 year"
                        , date_minor_breaks = "3 months"
                        , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
                        , date_labels = "%Y") +
+          scale_y_continuous(label = comma) +
           theme_minimal() +
           xlab("Months") +
-          ylab("Number of referrals and completed pathways") +
-          ggtitle("New referrals and completed pathways")
+          ylab("Number of pathways") +
+          ggtitle("New referrals and completed pathways") +
+          scale_color_manual(values = colors) +
+          labs(color = "") +
+          theme(text = element_text(size = 18)) +
+          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19", angle = 90) +
+          annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next general election", angle = 90)
       }
       
       else {
         # Plot referrals and completeds on same graph
         predictions() %>% 
           ggplot(aes(x = month_year)) +
-          geom_line(aes(y = total_activity), color = thf_blue, size = linesize) +
-          geom_line(aes(y = new_referrals), color = thf_red, size = linesize) +
-          geom_line(aes(y = referrals_pred_seasonal), color = thf_pink, linetype = 2, size = linesize) +
-          geom_line(aes(y = outflow_pred_seasonal), color = thf_lightblue, linetype = 2, size = linesize) +
+          geom_line(aes(y = total_activity, color = "Total outflow"), size = linesize) +
+          geom_line(aes(y = new_referrals, color = "New referrals"), size = linesize) +
+          geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), linetype = 2, size = linesize) +
+          geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), linetype = 2, size = linesize) +
           scale_x_date(date_breaks = "1 year"
                        , date_minor_breaks = "3 months"
                        , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
                        , date_labels = "%Y") +
+          scale_y_continuous(label = comma) +
           theme_minimal() +          
           xlab("Months") +
-          ylab("Number of referrals and completed pathways") +
-          ggtitle("New referrals and completed pathways")
+          ylab("Number of pathways") +
+          ggtitle("New referrals and completed pathways") +
+          scale_color_manual(values = colors) +
+          labs(color = "") +
+          theme(text = element_text(size = 18)) +
+          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19", angle = 90) +
+          annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next general election", angle = 90)
+          
       }
         
     }
@@ -245,32 +275,48 @@ server <- function(input, output) {
         # Plot waiting list without seasonality
         predictions() %>%
           ggplot(aes(x = month_year)) +
-          geom_col(aes(y = waiting_list), fill = thf_purple) +
-          geom_col(aes(y = waiting_list_pred), fill = thf_purple, alpha = 0.8) +
+          geom_col(aes(y = waiting_list, fill = "Waiting list")) +
+          geom_col(aes(y = waiting_list_pred, fill = "Predicted waiting list")) +
           scale_x_date(date_breaks = "1 year"
                        , date_minor_breaks = "3 months"
                        , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
                        , date_labels = "%Y") +
+          scale_y_continuous(label = comma) +
           theme_minimal() +
           xlab("Months") +
           ylab("Waiting list size") +
-          ggtitle("Waiting list")
+          ggtitle("Waiting list") +
+          scale_fill_manual(values = colors) +
+          labs(fill = "") +
+          theme(text = element_text(size = 18)) +
+          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8)
+        
       }
 
       else {
         # Plot waiting list with seasonality
         predictions() %>%
           ggplot(aes(x = month_year)) +
-          geom_col(aes(y = waiting_list), fill = thf_purple) +
-          geom_col(aes(y = waiting_list_pred_seasonal), fill = thf_purple, alpha = 0.8) +
+          geom_col(aes(y = waiting_list, fill = "Waiting list")) +
+          geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list")) +
           scale_x_date(date_breaks = "1 year"
                        , date_minor_breaks = "3 months"
                        , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
                        , date_labels = "%Y") +
+          scale_y_continuous(label = comma) +
           theme_minimal() +          
           xlab("Months") +
           ylab("Waiting list size") +
-          ggtitle("Waiting list")
+          ggtitle("Waiting list") +
+          scale_fill_manual(values = colors) +
+          labs(fill = "") +
+          theme(text = element_text(size = 18)) +
+          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+          geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8)
+        
       }
     }
   )
