@@ -127,12 +127,16 @@ ui <- fluidPage(
                            ))
                   ),
                   
-                  # strike intensity
-                  numericInput("intensity", 
-                               "Strike intensity %", 
-                               min = 0,
-                               max = 100, 
-                               value = 85
+                  fluidRow(
+                    column(6, 
+                           # strike intensity
+                           numericInput("intensity", 
+                                        "Strike intensity %", 
+                                        min = 0,
+                                        max = 100, 
+                                        value = 85
+                           )),
+                    column(6)
                   ),
                   
                   # help text on strikes
@@ -140,7 +144,11 @@ ui <- fluidPage(
                            with 3 days per month (for junior doctors) or 2 days per month
                            (for consultants) until the number of inputted strike days is reached"),
                   
-                  width = 2
+                  hr(),
+                  
+                  downloadButton("download_data", "Download data"),
+                  
+                  width = 3
                   
                 ),
                 
@@ -154,7 +162,6 @@ ui <- fluidPage(
                   plotly::plotlyOutput("waiting_list_plot")
                   
                 )
-                
   )
 )
 
@@ -303,6 +310,15 @@ server <- function(input, output) {
     
     ggplotly(to_plot)
   })
+  
+  output$download_data <- downloadHandler(
+    
+    filename = "data.csv",
+    content = function(file) {
+      write.csv(predictions() %>%
+                  head(20), file)
+    }
+  )
 }
 
 ##### Run app #####
