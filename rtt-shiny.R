@@ -83,41 +83,48 @@ ui <- fluidPage(
                   ),
                   
                   
-                  # number to choose referrals increases
-                  numericInput("referrals_change", 
-                               "Referrals percent change per year", 
-                               min = -100,
-                               max = 100, 
-                               value = 5
-                  ),
+                  fluidRow(
+                    column(6, 
+                           
+                           # number to choose referrals increases
+                           numericInput("referrals_change", 
+                                        "Referrals % change per year", 
+                                        min = -100,
+                                        max = 100, 
+                                        value = 5
+                           )),
+                    column(6,
+                           numericInput("outflow_change", 
+                                        "Completed pathways % change per year", 
+                                        min = -100,
+                                        max = 100, 
+                                        value = 5
+                           )
+                    )),
                   
                   # number to choose outflow increases
-                  numericInput("outflow_change", 
-                               "Completed pathways percent change per year", 
-                               min = -100,
-                               max = 100, 
-                               value = 5
-                  ),
-                  
                   # help text on outflow
                   helpText("The amount of change in outflow is calculated using the percentage change
                            inputted above for completed pathways, plus an additional percentage accounting 
                            for unreported removals, fixed at 13% of the new outflow rate"),
                   
-                  # number of junior doctor strike days to include
-                  numericInput("jr_drs", 
-                               "Number of junior doctor strike days to include", 
-                               min = 0,
-                               max = 57, 
-                               value = 6 
-                  ),
-                  
-                  # number of consultant strike days to include
-                  numericInput("consultant", 
-                               "Number of consultant strike days to include", 
-                               min = 0,
-                               max = 38, 
-                               value = 4 
+                  fluidRow(
+                    column(6, 
+                           # number of junior doctor strike days to include
+                           numericInput("jr_drs", 
+                                        "Number of junior doctor strike days to include", 
+                                        min = 0,
+                                        max = 57, 
+                                        value = 6 
+                           )),
+                    column(6, 
+                           # number of consultant strike days to include
+                           numericInput("consultant", 
+                                        "Number of consultant strike days to include", 
+                                        min = 0,
+                                        max = 38, 
+                                        value = 4 
+                           ))
                   ),
                   
                   # strike intensity
