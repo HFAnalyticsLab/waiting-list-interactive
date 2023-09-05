@@ -212,59 +212,47 @@ server <- function(input, output) {
   
   output$referrals_plot <- plotly::renderPlotly(
     { 
+      # Plot referrals and completeds on same graph
+      to_plot <- predictions() %>% 
+        ggplot(aes(x = month_year)) +
+        geom_line(aes(y = total_activity, color = "Total outflow"), size = linesize) +
+        geom_line(aes(y = new_referrals, color = "New referrals"), size = linesize) +
+        scale_x_date(date_breaks = "1 year"
+                     , date_minor_breaks = "3 months"
+                     , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                     , date_labels = "%Y") +
+        scale_y_continuous(label = comma) +
+        theme_minimal() +
+        xlab("Months") +
+        ylab("Number of pathways") +
+        ggtitle("New referrals and completed pathways") +
+        scale_color_manual(values = colors) +
+        labs(color = "") +
+        theme(text = element_text(size = 18)) +
+        annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+        annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19", angle = 90) +
+        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next general election", angle = 90)
+      
       if (input$seasonality == "linear") {
-        # Plot referrals and completeds on same graph
-        predictions() %>% 
-          ggplot(aes(x = month_year)) +
-          geom_line(aes(y = total_activity, color = "Total outflow"), size = linesize) +
-          geom_line(aes(y = new_referrals, color = "New referrals"), size = linesize) +
+        
+        to_plot <- to_plot + 
           geom_line(aes(y = referrals_trend, color = "Predicted referrals"), size = linesize) +
           geom_line(aes(y = activity_trend, color = "Predicted outflow"), size = linesize) +
           geom_line(aes(y = referrals_pred, color = "Predicted referrals"), linetype = 2, size = linesize) +
-          geom_line(aes(y = outflow_pred, color = "Predicted outflow"), linetype = 2, size = linesize) +
-          scale_x_date(date_breaks = "1 year"
-                       , date_minor_breaks = "3 months"
-                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                       , date_labels = "%Y") +
-          scale_y_continuous(label = comma) +
-          theme_minimal() +
-          xlab("Months") +
-          ylab("Number of pathways") +
-          ggtitle("New referrals and completed pathways") +
-          scale_color_manual(values = colors) +
-          labs(color = "") +
-          theme(text = element_text(size = 18)) +
-          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19", angle = 90) +
-          annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next general election", angle = 90)
+          geom_line(aes(y = outflow_pred, color = "Predicted outflow"), linetype = 2, size = linesize)
+        
       }
       
       else {
-        # Plot referrals and completeds on same graph
-        predictions() %>% 
-          ggplot(aes(x = month_year)) +
-          geom_line(aes(y = total_activity, color = "Total outflow"), size = linesize) +
-          geom_line(aes(y = new_referrals, color = "New referrals"), size = linesize) +
-          geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), linetype = 2, size = linesize) +
-          geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), linetype = 2, size = linesize) +
-          scale_x_date(date_breaks = "1 year"
-                       , date_minor_breaks = "3 months"
-                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                       , date_labels = "%Y") +
-          scale_y_continuous(label = comma) +
-          theme_minimal() +          
-          xlab("Months") +
-          ylab("Number of pathways") +
-          ggtitle("New referrals and completed pathways") +
-          scale_color_manual(values = colors) +
-          labs(color = "") +
-          theme(text = element_text(size = 18)) +
-          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19", angle = 90) +
-          annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next general election", angle = 90)
         
+        # Plot referrals and completeds on same graph
+        
+        to_plot <- to_plot + 
+          geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), 
+                    linetype = 2, size = linesize) +
+          geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), 
+                    linetype = 2, size = linesize)
       }
       
     }
