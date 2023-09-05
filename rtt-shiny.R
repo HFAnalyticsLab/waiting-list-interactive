@@ -273,60 +273,41 @@ server <- function(input, output) {
   
   # Predict waiting list
   
-  output$waiting_list_plot <- renderPlot(
-    {
-      if (input$seasonality == "linear"){
-        # Plot waiting list without seasonality
-        predictions() %>%
-          ggplot(aes(x = month_year)) +
-          geom_col(aes(y = waiting_list, fill = "Waiting list")) +
-          geom_col(aes(y = waiting_list_pred, fill = "Predicted waiting list")) +
-          scale_x_date(date_breaks = "1 year"
-                       , date_minor_breaks = "3 months"
-                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                       , date_labels = "%Y") +
-          scale_y_continuous(label = comma) +
-          theme_minimal() +
-          xlab("Months") +
-          ylab("Waiting list size") +
-          ggtitle("Waiting list") +
-          scale_fill_manual(values = colors) +
-          labs(fill = "") +
-          theme(text = element_text(size = 18)) +
-          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8)
-        
-      }
+  output$waiting_list_plot <- renderPlot({
+    
+    to_plot <- predictions() %>%
+      ggplot(aes(x = month_year)) +
+      geom_col(aes(y = waiting_list, fill = "Waiting list")) +
+      scale_x_date(date_breaks = "1 year"
+                   , date_minor_breaks = "3 months"
+                   , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                   , date_labels = "%Y") +
+      scale_y_continuous(label = comma) +
+      theme_minimal() +
+      xlab("Months") +
+      ylab("Waiting list size") +
+      ggtitle("Waiting list") +
+      scale_fill_manual(values = colors) +
+      labs(fill = "") +
+      theme(text = element_text(size = 18)) +
+      annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+      annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8)
+    
+    
+    if (input$seasonality == "linear"){
       
-      else {
-        # Plot waiting list with seasonality
-        predictions() %>%
-          ggplot(aes(x = month_year)) +
-          geom_col(aes(y = waiting_list, fill = "Waiting list")) +
-          geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list")) +
-          scale_x_date(date_breaks = "1 year"
-                       , date_minor_breaks = "3 months"
-                       , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                       , date_labels = "%Y") +
-          scale_y_continuous(label = comma) +
-          theme_minimal() +          
-          xlab("Months") +
-          ylab("Waiting list size") +
-          ggtitle("Waiting list") +
-          scale_fill_manual(values = colors) +
-          labs(fill = "") +
-          theme(text = element_text(size = 18)) +
-          annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-          geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8)
-        
-      }
+      to_plot <- to_plot + 
+        geom_col(aes(y = waiting_list_pred, fill = "Predicted waiting list"))
+    } else {
+      
+      to_plot <- to_plot + 
+        geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list"))
     }
-  )
+    
+    to_plot
+  })
 }
-
-
 
 ##### Run app #####
 
