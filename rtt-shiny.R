@@ -2,7 +2,7 @@
 
 # load packages
 library(janitor)
-
+library(plotly)
 library(lubridate)
 library(dplyr)
 library(ggplot2)
@@ -82,6 +82,7 @@ ui <- fluidPage(
                                
                   ),
                   
+                  
                   # number to choose referrals increases
                   numericInput("referrals_change", 
                                "Referrals percent change per year", 
@@ -140,10 +141,10 @@ ui <- fluidPage(
                 mainPanel(
                   
                   # plot referrals and outflow
-                  plotOutput("referrals_plot"),
+                  plotly::plotlyOutput("referrals_plot"),
                   
                   # plot waiting list
-                  plotOutput("waiting_list_plot")
+                  plotly::plotlyOutput("waiting_list_plot")
                   
                 )
                 
@@ -209,7 +210,7 @@ server <- function(input, output) {
   #### Referrals and completed plot ####
   # To do: can the if/else be implemented into one ggplot code so easier to update with colours etc.?
   
-  output$referrals_plot <- renderPlot(
+  output$referrals_plot <- plotly::renderPlotly(
     { 
       if (input$seasonality == "linear") {
         # Plot referrals and completeds on same graph
@@ -273,7 +274,7 @@ server <- function(input, output) {
   
   # Predict waiting list
   
-  output$waiting_list_plot <- renderPlot({
+  output$waiting_list_plot <- plotly::renderPlotly({
     
     to_plot <- predictions() %>%
       ggplot(aes(x = month_year)) +
@@ -305,7 +306,7 @@ server <- function(input, output) {
         geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list"))
     }
     
-    to_plot
+    ggplotly(to_plot)
   })
 }
 
