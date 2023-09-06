@@ -246,7 +246,7 @@ server <- function(input, output) {
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
         annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19", angle = 90) +
-        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next general election", angle = 90)
+        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next\n general election", angle = 90)
       
       if (input$seasonality == "linear") {
         
@@ -273,7 +273,7 @@ server <- function(input, output) {
       
       final_plot[['x']][['layout']][['shapes']] <- c()
       
-      final_plot <- layout(final_plot, title = 'Highlighting with Rectangles',
+      final_plot <- layout(final_plot,
                            
                            shapes = list(
                              list(type = "rect",
