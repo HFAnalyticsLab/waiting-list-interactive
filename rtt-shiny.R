@@ -269,6 +269,31 @@ server <- function(input, output) {
                     linetype = 2, size = linesize)
       }
       
+      final_plot <- ggplotly(to_plot)
+      
+      final_plot[['x']][['layout']][['shapes']] <- c()
+      
+      final_plot <- layout(final_plot, title = 'Highlighting with Rectangles',
+                           
+                           shapes = list(
+                             list(type = "rect",
+                                  
+                                  fillcolor = "grey", line = list(color = "grey"), opacity = 0.3,
+                                  
+                                  x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
+                                  
+                                  y0 = 0, y1 = 1, yref = "paper"),
+                             
+                             list(type = "rect",
+                                  
+                                  fillcolor = "grey", line = list(color = "grey"), opacity = 0.2,
+                                  
+                                  x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
+                                  
+                                  y0 = 0, y1 = 1, yref = "paper")))
+      
+      
+      final_plot
     }
   )
   
