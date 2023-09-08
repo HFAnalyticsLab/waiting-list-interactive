@@ -1,19 +1,17 @@
 ##### RTT Data Cleaning for Shiny app #####
 
-# clear workspace
-rm(list = ls()) 
-
-# load libraries
+# load packages
 library(readxl)
 library(janitor)
-library(tidyverse)
+library(lubridate)
+library(dplyr)
 library(zoo)
 
 # load CSV of data
 # this has been *slightly* cleaned in excel (made top merged row into part of the column headers and got rid of blank rows)--
 # could be done in R to make it completely reproducible, maybe using existing pipeline 
 
-rtt_data_raw <- read_excel("RTT_Shiny/rtt-data.xlsx", na = "-") %>% clean_names()
+rtt_data_raw <- read_excel("data/rtt-data.xlsx", na = "-") %>% clean_names()
 
 latest_data <- ymd("2023-06-01")
 
@@ -79,7 +77,7 @@ rtt_data$activity_trend <- c(pre_pandemic_activity_line, rep(NA_real_, 14), post
 ###### daily seasonality #####
 
 # read in CSV with number of working days each month 
-workdays <- read.csv("working-days-table.csv") %>% 
+workdays <- read.csv("data/working-days-table.csv") %>% 
   mutate(month_year = ymd(month_year))
 
 rtt_data <- rtt_data %>% 
@@ -107,7 +105,7 @@ seasonality <- rtt_data %>%
             , activity_seasonality = mean(activity_diff))
 
 ##### Save data to use in app #####
-saveRDS(rtt_data, "RTT_Shiny/rtt_data.RDS")
+saveRDS(rtt_data, "data/rtt_data.RDS", compress = FALSE)
 
-saveRDS(seasonality, "RTT_Shiny/seasonality.RDS")
+saveRDS(seasonality, "data/seasonality.RDS", compress = FALSE)
 
