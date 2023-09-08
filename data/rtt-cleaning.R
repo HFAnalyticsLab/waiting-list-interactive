@@ -56,17 +56,20 @@ rtt_data <- rtt_data_raw %>%
   ) %>% 
   
   # just include data from FY 2016 to June 2023
-  filter(month_year >= ymd("2016-04-01") & month_year <= latest_data)
+  filter(month_year >= ymd("2016-04-01") & month_year <= latest_data) %>% 
+  
+  # make month the end of the month
+  mutate(month_year = ceiling_date(month_year, "month") - days(1))
   
   
  
 ##### get trendlines for pre and post-pandemic ahead of time #####
 
 # fit a line to pre and post pandemic referrals and completed
-pre_pandemic_referrals_line <- predict(lm(new_referrals ~ month_year, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),]))
-post_pandemic_referrals_line <- predict(lm(new_referrals ~ month_year, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),]))
-pre_pandemic_activity_line <- predict(lm(total_activity ~ month_year, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),]))
-post_pandemic_activity_line <- predict(lm(total_activity ~ month_year, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),]))
+pre_pandemic_referrals_line <- predict(lm(new_referrals ~ month_year, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),]))
+post_pandemic_referrals_line <- predict(lm(new_referrals ~ month_year, data = rtt_data[rtt_data$month_year > ymd("2021-04-30"),]))
+pre_pandemic_activity_line <- predict(lm(total_activity ~ month_year, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),]))
+post_pandemic_activity_line <- predict(lm(total_activity ~ month_year, data = rtt_data[rtt_data$month_year > ymd("2021-04-30"),]))
 
 # get vector to plot lines and assign it to a new var in rtt_data
 # rep NA 14 times for no line during COVID months
@@ -78,14 +81,16 @@ rtt_data$activity_trend <- c(pre_pandemic_activity_line, rep(NA_real_, 14), post
 
 # read in CSV with number of working days each month 
 workdays <- read.csv("data/working-days-table.csv") %>% 
-  mutate(month_year = ymd(month_year))
+  mutate(month_year = ymd(month_year)) %>% 
+  # make month the end of the month
+  mutate(month_year = ceiling_date(month_year, "month") - days(1))
 
 rtt_data <- rtt_data %>% 
   left_join(workdays, by = "month_year") 
 
 # for seasonality: limit to up to FY18/19, calculate a daily rate, get yearly average, residual between month and year, and get avg deviance from yearly average 
 seasonality <- rtt_data %>% 
-  filter(month_year < ymd("2019-04-01")) %>% 
+  filter(month_year < ymd("2019-04-30")) %>% 
   # get day rate for each month
   mutate(new_referrals_day_rate = new_referrals / workdays
          , total_activity_day_rate = total_activity / workdays) %>%

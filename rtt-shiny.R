@@ -16,25 +16,45 @@ seasonality <- readRDS("data/seasonality.RDS")
 ##### Calculations outside shiny ####
 
 # point values of latest available data for plotting
-latest_data <- ymd("2023-06-01")
+latest_data <- ymd("2023-06-30")
 
 latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend
 latest_outflow <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend
 latest_waitlist <- rtt_data[rtt_data$month_year == latest_data,]$waiting_list
 latest_referrals_actual <- rtt_data[rtt_data$month_year == latest_data,]$new_referrals
 latest_outflow_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
-waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-01",]$waiting_list
+waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-31",]$waiting_list
 
 # time dataframe
 
-time_df <- data.frame(month_year = prediction_time <- seq(latest_data, ymd("2025-01-01"), by = "months") #  get all the dates for the 20 months
+time_df <- data.frame(month_year = prediction_time <- seq(latest_data, ymd("2025-01-31"), by = "months") #  get all the dates for the 20 months
                       , month_no = seq(0, 19) # index for multiplying monthly rate -- start at 0 because not including june
 )
 
 # fixed assumptions
-jr_dr_perc_consultant_led <- 0.80
-jr_dr_daily_cancel <- 33100
-consultant_daily_cancel <- 32800 
+jr_dr_perc_consultant_led <- 0.73
+jr_dr_daily_cancel <- 29100
+consultant_daily_cancel <- 22900 
+perc_result_completed_pathway <- 0.23
+jr_dr_strike_days_per_month <- 3
+consultant_strike_days_per_month <- 2
+
+jr_dr_start_val <- jr_dr_daily_cancel * jr_dr_perc_consultant_led * perc_result_completed_pathway * jr_dr_strike_days_per_month
+consultant_start_val <- consultant_daily_cancel * perc_result_completed_pathway * consultant_strike_days_per_month
+
+# include actual cancellations in july and august to predicted
+jr_dr_jul23_actual_cancellations <- 102565
+jr_dr_aug23_actual_cancellations <- 61200
+jr_dr_jul23 <- jr_dr_jul23_actual_cancellations * jr_dr_perc_consultant_led * perc_result_completed_pathway
+jr_dr_aug23 <- jr_dr_aug23_actual_cancellations * jr_dr_perc_consultant_led * perc_result_completed_pathway
+
+consultant_jul23_actual_cancellations <- 65557
+consultant_aug23_actual_cancellations <- 45827
+consultant_jul23 <- consultant_jul23_actual_cancellations * perc_result_completed_pathway
+consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_completed_pathway
+
+
+
 
 # function for monthly rate
 monthlyRate <- function(x) {
@@ -112,18 +132,18 @@ ui <- fluidPage(
                     column(6, 
                            # number of junior doctor strike days to include
                            numericInput("jr_drs", 
-                                        "Number of junior doctor strike days to include", 
+                                        "Number of months of junior doctor strikes to include", 
                                         min = 0,
-                                        max = 57, 
-                                        value = 6 
+                                        max = 18, 
+                                        value = 2 
                            )),
                     column(6, 
                            # number of consultant strike days to include
                            numericInput("consultant", 
-                                        "Number of consultant strike days to include", 
+                                        "Number of of months of consultant strikes to include", 
                                         min = 0,
-                                        max = 38, 
-                                        value = 4 
+                                        max = 18, 
+                                        value = 2 
                            ))
                   ),
                   
@@ -194,14 +214,14 @@ server <- function(input, output) {
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
-        mutate(jr_dr_strike_days = case_when(ceiling(input$jr_drs/3) > month_no & month_no > 0 ~ 3
-                                             , ceiling(input$jr_drs/3) == month_no ~ input$jr_drs %% 3
-                                             , TRUE ~ 0)
-               , consultant_strike_days =  case_when(ceiling(input$consultant/2) > month_no & month_no > 0 ~ 2
-                                                     , ceiling(input$consultant/2) == month_no ~ input$consultant %% 2
-                                                     , TRUE ~ 0)
-               , jr_dr_cancellations = jr_dr_strike_days * jr_dr_perc_consultant_led * jr_dr_daily_cancel * (input$intensity/100)^(month_no)
-               , consultant_cancellations = consultant_strike_days * consultant_daily_cancel * (input$intensity/100)^(month_no)
+        mutate(jr_dr_cancellations = case_when(input$jr_drs > month_no & month_no > 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 2)
+                                               , month_no == 1 ~ jr_dr_jul23
+                                               , month_no == 2 ~ jr_dr_aug23
+                                               , TRUE ~ 0)
+               , consultant_cancellations =  case_when(input$consultant > month_no & month_no > 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 2)
+                                                       , month_no == 1 ~ consultant_jul23
+                                                       , month_no == 2 ~ consultant_aug23                                                       
+                                                       , TRUE ~ 0)
         ) %>%
         
         mutate(outflow_pred = outflow_pred - jr_dr_cancellations - consultant_cancellations
