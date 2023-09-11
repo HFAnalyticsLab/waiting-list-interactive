@@ -40,14 +40,7 @@ rtt_data <- rtt_data_raw %>%
     month_year = ymd(month_year)
     , completed_total = completed_admitted + completed_non_admitted
   ) %>% 
-  
-  # # NO LONGER NEEDED
-  # # get 3-month moving averages for completed and new referrals (using previous two months + current month, i.e. right aligned)
-  # mutate(
-  #   completed_total_ma = rollmean(completed_total, k = 3, align = "right", fill = NA)
-  #   , new_referrals_ma = rollmean(new_referrals, k = 3, align = "right", fill = NA)
-  # ) %>% 
-  
+
   # get total outflow
   mutate(
     waiting_list_last_val = lag(waiting_list) # find the last value-- doing explicitly for QA purposes
@@ -62,21 +55,6 @@ rtt_data <- rtt_data_raw %>%
   mutate(month_year = ceiling_date(month_year, "month") - days(1))
   
   
- 
-##### get trendlines for pre and post-pandemic ahead of time #####
-
-# fit a line to pre and post pandemic referrals and completed
-pre_pandemic_referrals_line <- predict(lm(new_referrals ~ month_year, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),]))
-post_pandemic_referrals_line <- predict(lm(new_referrals ~ month_year, data = rtt_data[rtt_data$month_year > ymd("2021-04-30"),]))
-pre_pandemic_activity_line <- predict(lm(total_activity ~ month_year, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),]))
-post_pandemic_activity_line <- predict(lm(total_activity ~ month_year, data = rtt_data[rtt_data$month_year > ymd("2021-04-30"),]))
-
-# get vector to plot lines and assign it to a new var in rtt_data
-# rep NA 14 times for no line during COVID months
-rtt_data$referrals_trend <- c(pre_pandemic_referrals_line, rep(NA_real_, 14), post_pandemic_referrals_line)
-rtt_data$activity_trend <- c(pre_pandemic_activity_line, rep(NA_real_, 14), post_pandemic_activity_line)
-
-
 ###### daily seasonality #####
 
 # read in CSV with number of working days each month 
@@ -86,16 +64,16 @@ workdays <- read.csv("data/working-days-table.csv") %>%
   mutate(month_year = ceiling_date(month_year, "month") - days(1))
 
 rtt_data <- rtt_data %>% 
-  left_join(workdays, by = "month_year") 
-
-# for seasonality: limit to up to FY18/19, calculate a daily rate, get yearly average, residual between month and year, and get avg deviance from yearly average 
-seasonality <- rtt_data %>% 
-  filter(month_year < ymd("2019-04-30")) %>% 
-  # get day rate for each month
+  left_join(workdays, by = "month_year") %>% 
+  # get day rates for each month
   mutate(new_referrals_day_rate = new_referrals / workdays
          , total_activity_day_rate = total_activity / workdays) %>%
   # get financial year 
-  mutate(fin_year = floor(quarter(month_year, with_year = TRUE, fiscal_start = 4))) %>% 
+  mutate(fin_year = floor(quarter(month_year, with_year = TRUE, fiscal_start = 4))) 
+
+# for seasonality: limit to up to FY18/19, calculate a daily rate, get yearly average, get the residual between month and year, and get avg deviance from yearly average 
+seasonality <- rtt_data %>% 
+  filter(month_year < ymd("2019-04-30")) %>% 
   # group by year to get a yearly average
   group_by(fin_year) %>% 
   mutate(avg_yearly_referral_day_rate = mean(new_referrals_day_rate)
@@ -108,6 +86,72 @@ seasonality <- rtt_data %>%
   group_by(month = month(month_year)) %>% 
   summarise(referrals_seasonality = mean(referrals_diff)
             , activity_seasonality = mean(activity_diff))
+
+##### get trendlines for pre and post-pandemic ahead of time #####
+
+# Add a month number column 
+rtt_data <- rtt_data %>% 
+  mutate(month_no = interval(ymd("2016-03-31"), month_year) %/% months(1))
+
+pre_pandemic_referrals_day <- lm(new_referrals_day_rate ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),])
+post_pandemic_referrals_day <- lm(new_referrals_day_rate ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-30") & rtt_data$month_year <= ymd("2023-03-31"),])
+pre_pandemic_activity_day <- lm(total_activity_day_rate ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),])
+post_pandemic_activity_day <- lm(total_activity_day_rate ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-30") & rtt_data$month_year <= ymd("2023-03-31"),])
+
+
+# fit a line to pre and post pandemic referrals and completed
+# for post-pandemic, only use up to march 23
+pre_pandemic_referrals_day_line <- predict(pre_pandemic_referrals_day)
+post_pandemic_referrals_day_line <- predict(post_pandemic_referrals_day)
+pre_pandemic_activity_day_line <- predict(pre_pandemic_activity_day)
+post_pandemic_activity_day_line <- predict(post_pandemic_activity_day)
+
+# get vector to plot lines and assign it to a new var in rtt_data
+# rep NA 14 times for no line during COVID months
+# predict "counterfactual" of no IA after March 23
+
+# get countefactual dates
+no_ia_counterfactual <- data.frame(month_year = ceiling_date(seq(ymd("2023-04-01"), latest_data, by = "months"), "month") - days(1)) %>% 
+  mutate(month_no = interval(ymd("2016-03-31"), month_year) %/% months(1))
+
+# put predictions together to get day trendlines
+rtt_data$referrals_day_trend <- c(pre_pandemic_referrals_day_line
+                              , rep(NA_real_, 14)
+                              , post_pandemic_referrals_day_line
+                              , predict(post_pandemic_referrals_day, newdata = no_ia_counterfactual))
+rtt_data$activity_day_trend <- c(pre_pandemic_activity_day_line
+                             , rep(NA_real_, 14)
+                             , post_pandemic_activity_day_line
+                             , predict(post_pandemic_activity_day, newdata = no_ia_counterfactual))
+
+# multiply the day trendline to get month data
+rtt_data <- rtt_data %>% 
+  mutate(referrals_day_to_month = referrals_day_trend * workdays
+         , activity_day_to_month = activity_day_trend * workdays)
+
+# get a monthly trendline based on "predicted" monthly rates
+pre_pandemic_referrals <- lm(referrals_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),])
+post_pandemic_referrals <- lm(referrals_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-30"),])
+pre_pandemic_activity <- lm(activity_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-31"),])
+post_pandemic_activity <- lm(activity_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-30"),])
+
+
+# fit a line to pre and post pandemic referrals and completed
+# for post-pandemic, only use up to march 23
+pre_pandemic_referrals_line <- predict(pre_pandemic_referrals)
+post_pandemic_referrals_line <- predict(post_pandemic_referrals)
+pre_pandemic_activity_line <- predict(pre_pandemic_activity)
+post_pandemic_activity_line <- predict(post_pandemic_activity)
+
+
+# put predictions together to get month trendlines
+rtt_data$referrals_trend <- c(pre_pandemic_referrals_line
+                                  , rep(NA_real_, 14)
+                                  , post_pandemic_referrals_line)
+rtt_data$activity_trend <- c(pre_pandemic_activity_line
+                                 , rep(NA_real_, 14)
+                                 , post_pandemic_activity_line)
+
 
 ##### Save data to use in app #####
 saveRDS(rtt_data, "data/rtt_data.RDS", compress = FALSE)

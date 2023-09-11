@@ -265,8 +265,8 @@ server <- function(input, output) {
         theme(text = element_text(size = 18)) +
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-        annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19", angle = 90) +
-        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next\n general election", angle = 90)
+        annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19") +
+        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next\n general election")
       
       if (input$seasonality == "linear") {
         
@@ -384,7 +384,7 @@ server <- function(input, output) {
     filename = "data.csv",
     content = function(file) {
       write.csv(predictions() %>%
-                  head(20), file)
+                  select(-month, -month_no), file, row.names = F)
     }
   )
 }
