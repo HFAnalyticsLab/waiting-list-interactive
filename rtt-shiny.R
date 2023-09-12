@@ -16,20 +16,25 @@ seasonality <- readRDS("data/seasonality.RDS")
 ##### Calculations outside shiny ####
 
 # point values of latest available data for plotting
-latest_data <- ymd("2023-06-30")
+latest_data <- ymd("2023-06-01")
 
-latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend
-latest_outflow <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend
+latest_workdays <- rtt_data[rtt_data$month_year == latest_data,]$workdays
+latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend %>% unname() # need unname() to get rid of label on number
+latest_outflow <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend %>% unname()
 latest_waitlist <- rtt_data[rtt_data$month_year == latest_data,]$waiting_list
 latest_referrals_actual <- rtt_data[rtt_data$month_year == latest_data,]$new_referrals
 latest_outflow_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
-waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-31",]$waiting_list
+waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-01",]$waiting_list
 
 # time dataframe
 
-time_df <- data.frame(month_year = prediction_time <- seq(latest_data, ymd("2025-01-31"), by = "months") #  get all the dates for the 20 months
+time_df <- data.frame(month_year = prediction_time <- seq(latest_data, ymd("2025-01-01"), by = "months") #  get all the dates for the 20 months
                       , month_no = seq(0, 19) # index for multiplying monthly rate -- start at 0 because not including june
-)
+                      )
+time_df <- time_df %>% 
+  left_join(workdays_table, by = "month_year") %>% 
+  mutate(month = month(month_year)) %>% 
+  left_join(seasonality, by = "month")
 
 # fixed assumptions
 jr_dr_perc_consultant_led <- 0.73
@@ -60,6 +65,7 @@ consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_complete
 monthlyRate <- function(x) {
   (1+(x/100))^(1/12)
 }
+
 
 # colours and settings
 
@@ -197,20 +203,39 @@ server <- function(input, output) {
   # Make a reactive dataframe of months to calculate for (up to Jan 25)
   predictions <- reactive(
     {
+
       time_df %>%
         
         # calculate predictions for referrals, outflow, and waiting list (not including seasonality or strikes)
-        # here we get the predicted values using the final value of the linear trend (rather than actual value) 
-        mutate(referrals_pred = latest_referrals * monthlyRate(input$referrals_change)^month_no # get referrals increases
-               , outflow_pred = latest_outflow * monthlyRate(input$outflow_change)^month_no # here we assume all outflow increases by this (i.e. missing data important)
-        ) %>% 
+        # here we get the predicted values using the final value of the linear trend (rather than actual value)
+
+# ## ******** VERSION NOT ACCOUNTNING FOR WORKING DAYS ********
+#          mutate(referrals_pred = latest_referrals * monthlyRate(input$referrals_change)^month_no # get referrals increases
+#                 , outflow_pred = latest_outflow * monthlyRate(input$outflow_change)^month_no # here we assume all outflow increases by this (i.e. missing data important)
+#          ) %>%
+#         
+#          # include effect of seasonality
+#          mutate(referrals_pred_seasonal = if_else(month_no == 0, latest_referrals_actual, referrals_pred * referrals_seasonality)
+#                 , outflow_pred_seasonal = if_else(month_no == 0, latest_outflow_actual, outflow_pred * activity_seasonality)) %>%
+
+      ## ******** VERSION  ACCOUNTNING FOR WORKING DAYS ********       
+      #### NEED TO CHECK
         
-        # include effect of seasonality
-        mutate(month = month(month_year)) %>% 
-        left_join(seasonality, by = "month") %>% 
-        mutate(referrals_pred_seasonal = if_else(month_no == 0, latest_referrals_actual, referrals_pred * referrals_seasonality)
-               , outflow_pred_seasonal = if_else(month_no == 0, latest_outflow_actual, outflow_pred * activity_seasonality)) %>% 
+        mutate(referrals_pred_seasonal = if_else(month_no == 0
+                                                 , latest_referrals
+                                                 , latest_referrals * cumprod(1 / lag(workdays, default = latest_workdays)
+                                                   * workdays 
+                                                   * monthlyRate(input$referrals_change)) * referrals_seasonality)      
+              , outflow_pred_seasonal = if_else(month_no == 0
+                                                , latest_outflow
+                                                , latest_outflow * cumprod(1/ lag(workdays, default = latest_workdays)
+                                                   * workdays 
+                                                   * monthlyRate(input$outflow_change))* activity_seasonality)
+           ) %>% 
         
+        mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
+               , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
+      
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
