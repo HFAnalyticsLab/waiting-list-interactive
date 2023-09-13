@@ -349,7 +349,8 @@ server <- function(input, output) {
                                   
                                   x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                   
-                                  y0 = 0, y1 = 1, yref = "paper")))
+                                  y0 = 0, y1 = 1, yref = "paper")),
+                          xaxis = list(tickangle = 270))
       
       
       final_plot
@@ -413,7 +414,8 @@ server <- function(input, output) {
                                 
                                 x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                 
-                                y0 = 0, y1 = 1, yref = "paper")))
+                                y0 = 0, y1 = 1, yref = "paper")),
+                        xaxis = list(tickangle = 270))
     
     final_plot
   })
