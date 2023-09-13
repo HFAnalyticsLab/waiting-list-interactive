@@ -156,3 +156,5 @@ saveRDS(rtt_data, "data/rtt_data.RDS", compress = FALSE)
 
 saveRDS(seasonality, "data/seasonality.RDS", compress = FALSE)
 
+saveRDS(workdays_table, "data/workdays_table.RDS", compress = FALSE)
+
