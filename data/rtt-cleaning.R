@@ -89,13 +89,13 @@ rtt_data <- rtt_data %>%
   mutate(month_no = interval(ymd("2016-03-01"), month_year) %/% months(1))
 
 pre_pandemic_referrals_day <- lm(new_referrals_day_rate ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
-post_pandemic_referrals_day <- lm(new_referrals_day_rate ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01") & rtt_data$month_year <= ymd("2023-03-01"),])
+post_pandemic_referrals_day <- lm(new_referrals_day_rate ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),])
 pre_pandemic_activity_day <- lm(total_activity_day_rate ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
 post_pandemic_activity_day <- lm(total_activity_day_rate ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01") & rtt_data$month_year <= ymd("2023-03-01"),])
 
 
 # fit a line to pre and post pandemic referrals and completed
-# for post-pandemic, only use up to march 23
+# for post-pandemic, only use up to march 23 for completeds (IA starts then)
 pre_pandemic_referrals_day_line <- predict(pre_pandemic_referrals_day)
 post_pandemic_referrals_day_line <- predict(post_pandemic_referrals_day)
 pre_pandemic_activity_day_line <- predict(pre_pandemic_activity_day)
@@ -112,8 +112,7 @@ no_ia_counterfactual <- data.frame(month_year = seq(ymd("2023-04-01"), latest_da
 # put predictions together to get day trendlines
 rtt_data$referrals_day_trend <- c(pre_pandemic_referrals_day_line
                               , rep(NA_real_, 14)
-                              , post_pandemic_referrals_day_line
-                              , predict(post_pandemic_referrals_day, newdata = no_ia_counterfactual))
+                              , post_pandemic_referrals_day_line)
 rtt_data$activity_day_trend <- c(pre_pandemic_activity_day_line
                              , rep(NA_real_, 14)
                              , post_pandemic_activity_day_line
@@ -132,7 +131,6 @@ post_pandemic_activity <- lm(activity_day_to_month ~ month_no, data = rtt_data[r
 
 
 # fit a line to pre and post pandemic referrals and completed
-# for post-pandemic, only use up to march 23
 pre_pandemic_referrals_line <- predict(pre_pandemic_referrals)
 post_pandemic_referrals_line <- predict(post_pandemic_referrals)
 pre_pandemic_activity_line <- predict(pre_pandemic_activity)

@@ -42,7 +42,7 @@ time_df <- time_df %>%
 jr_dr_perc_consultant_led <- 0.73
 jr_dr_daily_cancel <- 29100
 consultant_daily_cancel <- 22900 
-perc_result_completed_pathway <- 0.23
+perc_result_completed_pathway <- 0.2
 jr_dr_strike_days_per_month <- 3
 consultant_strike_days_per_month <- 2
 
@@ -117,24 +117,20 @@ ui <- fluidPage(
                            # number to choose referrals increases
                            numericInput("referrals_change", 
                                         "Referrals % change per year", 
-                                        min = -100,
-                                        max = 100, 
-                                        value = 5
+                                        min = -20,
+                                        max = 20, 
+                                        value = 4.6
                            )),
                     column(6,
                            numericInput("outflow_change", 
                                         "Completed pathways % change per year", 
-                                        min = -100,
-                                        max = 100, 
-                                        value = 5
+                                        min = -20,
+                                        max = 20, 
+                                        value = 7.3
                            )
                     )),
                   
                   # number to choose outflow increases
-                  # help text on outflow
-                  helpText("The amount of change in outflow is calculated using the percentage change
-                           inputted above for completed pathways, plus an additional percentage accounting 
-                           for unreported removals, fixed at 13% of the new outflow rate"),
                   
                   fluidRow(
                     column(6, 
@@ -142,16 +138,16 @@ ui <- fluidPage(
                            numericInput("jr_drs", 
                                         "Number of months of junior doctor strikes to include", 
                                         min = 0,
-                                        max = 18, 
-                                        value = 2 
+                                        max = 17, 
+                                        value = 17 
                            )),
                     column(6, 
                            # number of consultant strike days to include
                            numericInput("consultant", 
                                         "Number of of months of consultant strikes to include", 
                                         min = 0,
-                                        max = 18, 
-                                        value = 2 
+                                        max = 17, 
+                                        value = 17 
                            ))
                   ),
                   
@@ -162,15 +158,13 @@ ui <- fluidPage(
                                         "Strike intensity %", 
                                         min = 0,
                                         max = 100, 
-                                        value = 85
+                                        value = 90
                            )),
                     column(6)
                   ),
                   
                   # help text on strikes
-                  helpText("Strike days will be incorporated in the first few months, 
-                           with 3 days per month (for junior doctors) or 2 days per month
-                           (for consultants) until the number of inputted strike days is reached"),
+                  helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached."),
                   
                   hr(),
                   
@@ -240,10 +234,10 @@ server <- function(input, output) {
         
         
         mutate(referrals_pred_seasonal = if_else(month_no == 0
-                                                 , latest_referrals
+                                                 , latest_referrals_actual
                                                  , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
                , outflow_pred_seasonal = if_else(month_no == 0
-                                                 , latest_outflow
+                                                 , latest_outflow_actual
                                                  , latest_outflow/latest_workdays * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
               ) %>% 
         
@@ -349,7 +343,9 @@ server <- function(input, output) {
                                   
                                   x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                   
-                                  y0 = 0, y1 = 1, yref = "paper")))
+                                  y0 = 0, y1 = 1, yref = "paper")),
+                           
+                           xaxis = list(tickangle = 270))
       
       
       final_plot
@@ -413,7 +409,8 @@ server <- function(input, output) {
                                 
                                 x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                 
-                                y0 = 0, y1 = 1, yref = "paper")))
+                                y0 = 0, y1 = 1, yref = "paper")),
+                         xaxis = list(tickangle = 270))
     
     final_plot
   })
