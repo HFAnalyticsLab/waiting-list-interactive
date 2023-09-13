@@ -19,8 +19,8 @@ seasonality <- readRDS("data/seasonality.RDS")
 latest_data <- ymd("2023-06-01")
 
 latest_workdays <- rtt_data[rtt_data$month_year == latest_data,]$workdays
-latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend %>% unname() # need unname() to get rid of label on number
-latest_outflow <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend %>% unname()
+latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend 
+latest_outflow <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend
 latest_waitlist <- rtt_data[rtt_data$month_year == latest_data,]$waiting_list
 latest_referrals_actual <- rtt_data[rtt_data$month_year == latest_data,]$new_referrals
 latest_outflow_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
@@ -221,17 +221,29 @@ server <- function(input, output) {
       ## ******** VERSION  ACCOUNTNING FOR WORKING DAYS ********       
       #### NEED TO CHECK
         
+        # mutate(referrals_pred_seasonal = if_else(month_no == 0
+        #                                          , latest_referrals
+        #                                          , latest_referrals * cumprod(1 / lag(workdays, default = latest_workdays)
+        #                                            * workdays 
+        #                                            * monthlyRate(input$referrals_change)) * referrals_seasonality)      
+        #       , outflow_pred_seasonal = if_else(month_no == 0
+        #                                         , latest_outflow
+        #                                         , latest_outflow * cumprod(1/ lag(workdays, default = latest_workdays)
+        #                                            * workdays 
+        #                                            * monthlyRate(input$outflow_change))* activity_seasonality)
+        #    ) %>% 
+        # 
+        # mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
+        #        , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
+        
+        
         mutate(referrals_pred_seasonal = if_else(month_no == 0
                                                  , latest_referrals
-                                                 , latest_referrals * cumprod(1 / lag(workdays, default = latest_workdays)
-                                                   * workdays 
-                                                   * monthlyRate(input$referrals_change)) * referrals_seasonality)      
-              , outflow_pred_seasonal = if_else(month_no == 0
-                                                , latest_outflow
-                                                , latest_outflow * cumprod(1/ lag(workdays, default = latest_workdays)
-                                                   * workdays 
-                                                   * monthlyRate(input$outflow_change))* activity_seasonality)
-           ) %>% 
+                                                 , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
+               , outflow_pred_seasonal = if_else(month_no == 0
+                                                 , latest_outflow
+                                                 , latest_outflow/latest_workdays * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
+              ) %>% 
         
         mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
                , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
