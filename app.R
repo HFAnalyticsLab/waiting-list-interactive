@@ -18,7 +18,7 @@ workdays_table <- readRDS("data/workdays_table.RDS")
 ##### Calculations outside shiny ####
 
 # point values of latest available data for plotting
-latest_data <- ymd("2023-06-01")
+latest_data <- ymd("2023-07-01")
 
 latest_workdays <- rtt_data[rtt_data$month_year == latest_data,]$workdays
 latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend 
@@ -31,8 +31,9 @@ waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-01",]$waiting
 # time dataframe
 
 time_df <- data.frame(month_year = prediction_time <- seq(latest_data, ymd("2025-01-01"), by = "months") #  get all the dates for the 20 months
-                      , month_no = seq(0, 19) # index for multiplying monthly rate -- start at 0 because not including june
-)
+                      , month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)) # index for multiplying monthly rate -- start at 0 because not including latest data
+                      )
+
 time_df <- time_df %>% 
   left_join(workdays_table, by = "month_year") %>% 
   mutate(month = month(month_year)) %>% 
@@ -40,24 +41,24 @@ time_df <- time_df %>%
 
 # fixed assumptions
 jr_dr_perc_consultant_led <- 0.73
-jr_dr_daily_cancel <- 29100
+jr_dr_daily_cancel <- 22200
 consultant_daily_cancel <- 22900 
 perc_result_completed_pathway <- 0.2
 jr_dr_strike_days_per_month <- 3
 consultant_strike_days_per_month <- 2
 
-jr_dr_start_val <- jr_dr_daily_cancel * jr_dr_perc_consultant_led * perc_result_completed_pathway * jr_dr_strike_days_per_month
+# for junior doctors, not all appointments are consultant led so need to account for this and add this to procedures, which are all consultant led
+jr_dr_start_val <- jr_dr_daily_cancel * perc_result_completed_pathway * jr_dr_strike_days_per_month
 consultant_start_val <- consultant_daily_cancel * perc_result_completed_pathway * consultant_strike_days_per_month
 
 # include actual cancellations in july and august to predicted
-jr_dr_jul23_actual_cancellations <- 102565
 jr_dr_aug23_actual_cancellations <- 61200
-jr_dr_jul23 <- jr_dr_jul23_actual_cancellations * jr_dr_perc_consultant_led * perc_result_completed_pathway
-jr_dr_aug23 <- jr_dr_aug23_actual_cancellations * jr_dr_perc_consultant_led * perc_result_completed_pathway
+jr_dr_aug23_actual_cancellations_appt <- 26719
+jr_dr_aug23_actual_cancellations_proc <- 3882
 
-consultant_jul23_actual_cancellations <- 65557
+jr_dr_aug23 <- ((jr_dr_aug23_actual_cancellations_appt * jr_dr_perc_consultant_led) + jr_dr_aug23_actual_cancellations_proc) * perc_result_completed_pathway
+
 consultant_aug23_actual_cancellations <- 45827
-consultant_jul23 <- consultant_jul23_actual_cancellations * perc_result_completed_pathway
 consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_completed_pathway
 
 
@@ -279,13 +280,11 @@ server <- function(input, output, session) {
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
-        mutate(jr_dr_cancellations = case_when(input$jr_drs > month_no & month_no > 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 2)
-                                               , month_no == 1 ~ jr_dr_jul23
-                                               , month_no == 2 ~ jr_dr_aug23
+        mutate(jr_dr_cancellations = case_when(input$jr_drs > month_no & month_no > 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 1)
+                                               , month_no == 1 ~ jr_dr_aug23
                                                , TRUE ~ 0)
-               , consultant_cancellations =  case_when(input$consultant > month_no & month_no > 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 2)
-                                                       , month_no == 1 ~ consultant_jul23
-                                                       , month_no == 2 ~ consultant_aug23                                                       
+               , consultant_cancellations =  case_when(input$consultant > month_no & month_no > 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 1)
+                                                       , month_no == 1 ~ consultant_aug23                                                   
                                                        , TRUE ~ 0)
         ) %>%
         
@@ -293,7 +292,7 @@ server <- function(input, output, session) {
                , outflow_pred_seasonal = outflow_pred_seasonal - jr_dr_cancellations - consultant_cancellations) %>%
         
         # get new waiting list number
-        # cumulative sum of referrals (up to t-1), - outflow (at t-1), and adding to june 23 waiting list
+        # cumulative sum of referrals (up to t-1), - outflow (at t-1), and adding to latest waiting list
         
         mutate(waiting_list_pred = latest_waitlist + cumsum(lag(referrals_pred, default = 0)) - cumsum(lag(outflow_pred, default = 0))
                , waiting_list_pred_seasonal = latest_waitlist + cumsum(lag(referrals_pred_seasonal, default = 0)) - cumsum(lag(outflow_pred_seasonal, default = 0))) %>% 
@@ -452,7 +451,7 @@ server <- function(input, output, session) {
     filename = "data.csv",
     content = function(file) {
       write.csv(predictions() %>%
-                  select(-month, -month_no), file, row.names = F)
+                  select(-month), file, row.names = F)
     }
   )
 }
