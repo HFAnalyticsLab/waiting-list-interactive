@@ -2,6 +2,7 @@
 
 # load packages
 library(readxl)
+library(openxlsx)
 library(janitor)
 library(lubridate)
 library(dplyr)
@@ -11,9 +12,23 @@ library(zoo)
 # this has been *slightly* cleaned in excel (made top merged row into part of the column headers and got rid of blank rows)--
 # could be done in R to make it completely reproducible, maybe using existing pipeline 
 
-rtt_data_raw <- read_excel("data/rtt-data.xlsx", na = "-") %>% clean_names()
+rtt_data_raw <- read.xlsx("data/rtt-data.xlsx", na.strings = "-", startRow = 11, fillMergedCells = TRUE, skipEmptyCols = TRUE)
 
-latest_data <- ymd("2023-06-01")
+rtt_data_raw$X2 <- convert_to_date(rtt_data_raw$X2)
+
+# add the merged column headers back in as part of colnames
+names(rtt_data_raw)[3:20] <- paste0("incomplete_", names(rtt_data_raw)[3:20])
+names(rtt_data_raw)[21:26] <- paste0("admitted_unadj_", names(rtt_data_raw)[21:26])
+names(rtt_data_raw)[27:32] <- paste0("non_admitted_", names(rtt_data_raw)[27:32])
+names(rtt_data_raw)[33:34] <- paste0("new_referrals_", names(rtt_data_raw)[33:34])
+names(rtt_data_raw)[35:39] <- paste0("admitted_adj_", names(rtt_data_raw)[35:39])
+
+# final cleaning of names
+rtt_data_raw <- rtt_data_raw %>% 
+  clean_names() %>% 
+  rename(fiscal_year = x1, month_year = x2)
+
+latest_data <- ymd("2023-07-01")
 
 ##### Clean data #####
 
