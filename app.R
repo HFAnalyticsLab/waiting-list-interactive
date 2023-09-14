@@ -107,16 +107,8 @@ ui <- fluidPage(
                   # add help text at top
                   h4("Choose parameters"),
                   
-                  # include seasonality
-                  radioButtons("seasonality",
-                               "Include seasonal variation in predictions?",
-                               c("Yes - show seasonality" = "seasonal",
-                                 "No - use straight lines" = "linear"
-                               ),
-                               inline = FALSE,
-                               selected = "linear"
-                               
-                  ),
+                  
+                  uiOutput("preset_server"),
                   
                   
                   fluidRow(
@@ -173,8 +165,7 @@ ui <- fluidPage(
                   
                   # help text on strikes
                   helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached."),
-                  
-                  uiOutput("preset_server"),
+
                   
                   hr(),
                   
@@ -232,50 +223,15 @@ server <- function(input, output, session) {
   # Make a reactive dataframe of months to calculate for (up to Jan 25)
   predictions <- reactive(
     {
-      
       time_df %>%
-        
-        # calculate predictions for referrals, outflow, and waiting list (not including seasonality or strikes)
-        # here we get the predicted values using the final value of the linear trend (rather than actual value)
-        
-        # ## ******** VERSION NOT ACCOUNTNING FOR WORKING DAYS ********
-        #          mutate(referrals_pred = latest_referrals * monthlyRate(input$referrals_change)^month_no # get referrals increases
-        #                 , outflow_pred = latest_outflow * monthlyRate(input$outflow_change)^month_no # here we assume all outflow increases by this (i.e. missing data important)
-        #          ) %>%
-        #         
-        #          # include effect of seasonality
-        #          mutate(referrals_pred_seasonal = if_else(month_no == 0, latest_referrals_actual, referrals_pred * referrals_seasonality)
-      #                 , outflow_pred_seasonal = if_else(month_no == 0, latest_outflow_actual, outflow_pred * activity_seasonality)) %>%
-      
-      ## ******** VERSION  ACCOUNTNING FOR WORKING DAYS ********       
-      #### NEED TO CHECK
-      
-      # mutate(referrals_pred_seasonal = if_else(month_no == 0
-      #                                          , latest_referrals
-      #                                          , latest_referrals * cumprod(1 / lag(workdays, default = latest_workdays)
-      #                                            * workdays 
-      #                                            * monthlyRate(input$referrals_change)) * referrals_seasonality)      
-      #       , outflow_pred_seasonal = if_else(month_no == 0
-      #                                         , latest_outflow
-      #                                         , latest_outflow * cumprod(1/ lag(workdays, default = latest_workdays)
-      #                                            * workdays 
-      #                                            * monthlyRate(input$outflow_change))* activity_seasonality)
-      #    ) %>% 
-      # 
-      # mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
-      #        , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
-      
-      
-      mutate(referrals_pred_seasonal = if_else(month_no == 0
+        mutate(referrals_pred_seasonal = if_else(month_no == 0
                                                , latest_referrals_actual
                                                , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
              , outflow_pred_seasonal = if_else(month_no == 0
                                                , latest_outflow_actual
                                                , latest_outflow/latest_workdays * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
-      ) %>% 
-        
-        mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
-               , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
+        ) %>% 
+
         
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
@@ -288,14 +244,22 @@ server <- function(input, output, session) {
                                                        , TRUE ~ 0)
         ) %>%
         
-        mutate(outflow_pred = outflow_pred - jr_dr_cancellations - consultant_cancellations
-               , outflow_pred_seasonal = outflow_pred_seasonal - jr_dr_cancellations - consultant_cancellations) %>%
+        mutate(outflow_pred_seasonal = outflow_pred_seasonal - jr_dr_cancellations - consultant_cancellations) %>%
+        
+        mutate(outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no, data = data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
+                                         )
+                                      )
+               ) %>% 
+        
+        mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no, data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
+                                          )
+                                        )
+        ) %>% 
         
         # get new waiting list number
         # cumulative sum of referrals (up to t-1), - outflow (at t-1), and adding to latest waiting list
         
-        mutate(waiting_list_pred = latest_waitlist + cumsum(lag(referrals_pred, default = 0)) - cumsum(lag(outflow_pred, default = 0))
-               , waiting_list_pred_seasonal = latest_waitlist + cumsum(lag(referrals_pred_seasonal, default = 0)) - cumsum(lag(outflow_pred_seasonal, default = 0))) %>% 
+        mutate(waiting_list_pred_seasonal = latest_waitlist + cumsum(lag(referrals_pred_seasonal, default = 0)) - cumsum(lag(outflow_pred_seasonal, default = 0))) %>% 
         
         # join the original dataset
         full_join(rtt_data, by = "month_year") 
@@ -321,6 +285,14 @@ server <- function(input, output, session) {
                      , date_labels = "%Y") +
         scale_y_continuous(label = comma) +
         theme_minimal() +
+        geom_line(aes(y = referrals_trend, color = "Predicted referrals"), size = linesize) +
+        geom_line(aes(y = activity_trend, color = "Predicted outflow"), size = linesize) +
+        geom_line(aes(y = referrals_pred, color = "Predicted referrals"), linetype = 2, size = linesize) +
+        geom_line(aes(y = outflow_pred, color = "Predicted outflow"), linetype = 2, size = linesize) +
+        geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), 
+                linetype = 2, size = linesize) +
+        geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), 
+                  linetype = 2, size = linesize) +
         xlab("Months") +
         ylab("Number of pathways") +
         ggtitle("New referrals and completed pathways") +
@@ -330,29 +302,8 @@ server <- function(input, output, session) {
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
         annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19") +
-        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next\n general election")
-      
-      if (input$seasonality == "linear") {
-        
-        to_plot <- to_plot + 
-          geom_line(aes(y = referrals_trend, color = "Predicted referrals"), size = linesize) +
-          geom_line(aes(y = activity_trend, color = "Predicted outflow"), size = linesize) +
-          geom_line(aes(y = referrals_pred, color = "Predicted referrals"), linetype = 2, size = linesize) +
-          geom_line(aes(y = outflow_pred, color = "Predicted outflow"), linetype = 2, size = linesize)
-        
-      }
-      
-      else {
-        
-        # Plot referrals and completeds on same graph
-        
-        to_plot <- to_plot + 
-          geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), 
-                    linetype = 2, size = linesize) +
-          geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), 
-                    linetype = 2, size = linesize)
-      }
-      
+        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next\n general election") 
+
       final_plot <- ggplotly(to_plot)
       
       final_plot[['x']][['layout']][['shapes']] <- c()
@@ -406,18 +357,9 @@ server <- function(input, output, session) {
       theme(text = element_text(size = 18)) +
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8)
-    
-    
-    if (input$seasonality == "linear"){
-      
-      to_plot <- to_plot + 
-        geom_col(aes(y = waiting_list_pred, fill = "Predicted waiting list"))
-    } else {
-      
-      to_plot <- to_plot + 
-        geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list"))
-    }
+      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8) +
+      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list"))
+
     
     final_plot <- ggplotly(to_plot)
     
@@ -444,6 +386,7 @@ server <- function(input, output, session) {
                          xaxis = list(tickangle = 270))
     
     final_plot
+    
   })
   
   output$download_data <- downloadHandler(
