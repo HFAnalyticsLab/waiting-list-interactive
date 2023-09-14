@@ -7,10 +7,10 @@ library(janitor)
 library(lubridate)
 library(dplyr)
 library(zoo)
+ 
+##### Load raw data (download from https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/)
 
-# load CSV of data
-# this has been *slightly* cleaned in excel (made top merged row into part of the column headers and got rid of blank rows)--
-# could be done in R to make it completely reproducible, maybe using existing pipeline 
+##### initial formatting of raw data #####
 
 rtt_data_raw <- read.xlsx("data/rtt-data.xlsx", na.strings = "-", startRow = 11, fillMergedCells = TRUE, skipEmptyCols = TRUE)
 

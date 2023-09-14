@@ -79,7 +79,7 @@ monthlyRate <- function(x) {
 
 # colours and settings
 
-linesize <- 1.2
+linesize <- 1
 thf_blue <- "#53a9cd"
 thf_lightblue <- "#7ebfda"
 thf_red <- "#dd0031"
@@ -93,6 +93,8 @@ colors <- c("New referrals" = thf_red
             , "Predicted outflow" = thf_lightblue
             , "Waiting list" = thf_purple
             , "Predicted waiting list" = thf_teal)
+
+textsize <- 14
 
 ##### User interface #####
 ui <- fluidPage(
@@ -298,7 +300,7 @@ server <- function(input, output, session) {
         ggtitle("New referrals and completed pathways") +
         scale_color_manual(values = colors) +
         labs(color = "") +
-        theme(text = element_text(size = 18)) +
+        theme(text = element_text(size = textsize), legend.position = "top") +
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
         annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19") +
@@ -327,7 +329,11 @@ server <- function(input, output, session) {
                                   
                                   y0 = 0, y1 = 1, yref = "paper")),
                            
-                           xaxis = list(tickangle = 270))
+                           xaxis = list(tickangle = 315),
+                           
+                           legend = list(x = ymd("2018-01-01"), y = 2500000, orientation = 'h')
+                           
+                           )
       
       
       final_plot
@@ -354,7 +360,7 @@ server <- function(input, output, session) {
       ggtitle("Waiting list") +
       scale_fill_manual(values = colors) +
       labs(fill = "") +
-      theme(text = element_text(size = 18)) +
+      theme(text = element_text(size = textsize), legend.position = "top") +
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8) +
@@ -383,7 +389,12 @@ server <- function(input, output, session) {
                                 x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                 
                                 y0 = 0, y1 = 1, yref = "paper")),
-                         xaxis = list(tickangle = 270))
+                         
+                         xaxis = list(tickangle = 315),
+                         
+                         legend = list(x = ymd("2018-01-01"), y = 2500000, orientation = 'h')
+                         
+                         )
     
     final_plot
     
