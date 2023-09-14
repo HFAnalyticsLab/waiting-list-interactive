@@ -41,14 +41,14 @@ time_df <- time_df %>%
 
 # fixed assumptions
 jr_dr_perc_consultant_led <- 0.73
-jr_dr_daily_cancel <- 29100
+jr_dr_daily_cancel <- 22200
 consultant_daily_cancel <- 22900 
 perc_result_completed_pathway <- 0.2
 jr_dr_strike_days_per_month <- 3
 consultant_strike_days_per_month <- 2
 
 # for junior doctors, not all appointments are consultant led so need to account for this and add this to procedures, which are all consultant led
-jr_dr_start_val <- jr_dr_daily_cancel * jr_dr_perc_consultant_led * perc_result_completed_pathway * jr_dr_strike_days_per_month
+jr_dr_start_val <- jr_dr_daily_cancel * perc_result_completed_pathway * jr_dr_strike_days_per_month
 consultant_start_val <- consultant_daily_cancel * perc_result_completed_pathway * consultant_strike_days_per_month
 
 # include actual cancellations in july and august to predicted
