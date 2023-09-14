@@ -32,7 +32,7 @@ waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-01",]$waiting
 
 time_df <- data.frame(month_year = prediction_time <- seq(latest_data, ymd("2025-01-01"), by = "months") #  get all the dates for the 20 months
                       , month_no = seq(0, 19) # index for multiplying monthly rate -- start at 0 because not including june
-                      )
+)
 time_df <- time_df %>% 
   left_join(workdays_table, by = "month_year") %>% 
   mutate(month = month(month_year)) %>% 
@@ -61,6 +61,13 @@ consultant_jul23 <- consultant_jul23_actual_cancellations * perc_result_complete
 consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_completed_pathway
 
 
+## choices dataframe
+
+choice_df <- data.frame("referrals_change" = c(0, 4.6, 10),
+                        "outflow_change" = c(0, 7.3, 10),
+                        "jr_drs" = c(0, 10, 17),
+                        "consultant" = c(0, 10, 17),
+                        "intensity" = c(60, 80, 100))
 
 
 # function for monthly rate
@@ -166,6 +173,8 @@ ui <- fluidPage(
                   # help text on strikes
                   helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached."),
                   
+                  uiOutput("preset_server"),
+                  
                   hr(),
                   
                   downloadButton("download_data", "Download data"),
@@ -192,58 +201,81 @@ ui <- fluidPage(
 # below are some input values for testing outside app -- should comment out otherwise
 # input <- data.frame(seasonality = "seasonal", jr_drs = 7, consultant = 5, referrals_change = 5, outflow_change = 5, intensity = 85)
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  output$preset_server <- renderUI({
+    
+    high <- paste(choice_df[3, ], sep = " ", collapse=", ") 
+    medium <- paste(choice_df[2, ], sep = " ", collapse=", ") 
+    low <- paste(choice_df[1, ], sep = " ", collapse=", ")
+    
+    choice_values <- 3 : 1
+    
+    names(choice_values) <- c(high, medium, low)
+    
+    radioButtons("preset", "Choose preset values", choices = choice_values)
+  })
+  
+  observe({
+    
+    purrr::map(names(choice_df), function(x){
+      
+      updateNumericInput(session, x, value = choice_df[input$preset, x])
+      
+    })
+    
+  })
   
   #### Make predictions ####
   
   # Make a reactive dataframe of months to calculate for (up to Jan 25)
   predictions <- reactive(
     {
-
+      
       time_df %>%
         
         # calculate predictions for referrals, outflow, and waiting list (not including seasonality or strikes)
         # here we get the predicted values using the final value of the linear trend (rather than actual value)
-
-# ## ******** VERSION NOT ACCOUNTNING FOR WORKING DAYS ********
-#          mutate(referrals_pred = latest_referrals * monthlyRate(input$referrals_change)^month_no # get referrals increases
-#                 , outflow_pred = latest_outflow * monthlyRate(input$outflow_change)^month_no # here we assume all outflow increases by this (i.e. missing data important)
-#          ) %>%
-#         
-#          # include effect of seasonality
-#          mutate(referrals_pred_seasonal = if_else(month_no == 0, latest_referrals_actual, referrals_pred * referrals_seasonality)
-#                 , outflow_pred_seasonal = if_else(month_no == 0, latest_outflow_actual, outflow_pred * activity_seasonality)) %>%
-
+        
+        # ## ******** VERSION NOT ACCOUNTNING FOR WORKING DAYS ********
+        #          mutate(referrals_pred = latest_referrals * monthlyRate(input$referrals_change)^month_no # get referrals increases
+        #                 , outflow_pred = latest_outflow * monthlyRate(input$outflow_change)^month_no # here we assume all outflow increases by this (i.e. missing data important)
+        #          ) %>%
+        #         
+        #          # include effect of seasonality
+        #          mutate(referrals_pred_seasonal = if_else(month_no == 0, latest_referrals_actual, referrals_pred * referrals_seasonality)
+      #                 , outflow_pred_seasonal = if_else(month_no == 0, latest_outflow_actual, outflow_pred * activity_seasonality)) %>%
+      
       ## ******** VERSION  ACCOUNTNING FOR WORKING DAYS ********       
       #### NEED TO CHECK
-        
-        # mutate(referrals_pred_seasonal = if_else(month_no == 0
-        #                                          , latest_referrals
-        #                                          , latest_referrals * cumprod(1 / lag(workdays, default = latest_workdays)
-        #                                            * workdays 
-        #                                            * monthlyRate(input$referrals_change)) * referrals_seasonality)      
-        #       , outflow_pred_seasonal = if_else(month_no == 0
-        #                                         , latest_outflow
-        #                                         , latest_outflow * cumprod(1/ lag(workdays, default = latest_workdays)
-        #                                            * workdays 
-        #                                            * monthlyRate(input$outflow_change))* activity_seasonality)
-        #    ) %>% 
-        # 
-        # mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
-        #        , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
-        
-        
-        mutate(referrals_pred_seasonal = if_else(month_no == 0
-                                                 , latest_referrals_actual
-                                                 , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
-               , outflow_pred_seasonal = if_else(month_no == 0
-                                                 , latest_outflow_actual
-                                                 , latest_outflow/latest_workdays * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
-              ) %>% 
+      
+      # mutate(referrals_pred_seasonal = if_else(month_no == 0
+      #                                          , latest_referrals
+      #                                          , latest_referrals * cumprod(1 / lag(workdays, default = latest_workdays)
+      #                                            * workdays 
+      #                                            * monthlyRate(input$referrals_change)) * referrals_seasonality)      
+      #       , outflow_pred_seasonal = if_else(month_no == 0
+      #                                         , latest_outflow
+      #                                         , latest_outflow * cumprod(1/ lag(workdays, default = latest_workdays)
+      #                                            * workdays 
+      #                                            * monthlyRate(input$outflow_change))* activity_seasonality)
+      #    ) %>% 
+      # 
+      # mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
+      #        , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
+      
+      
+      mutate(referrals_pred_seasonal = if_else(month_no == 0
+                                               , latest_referrals_actual
+                                               , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
+             , outflow_pred_seasonal = if_else(month_no == 0
+                                               , latest_outflow_actual
+                                               , latest_outflow/latest_workdays * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
+      ) %>% 
         
         mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no))
                , outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no))) %>% 
-      
+        
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
