@@ -352,6 +352,7 @@ server <- function(input, output, session) {
     
     to_plot <- predictions() %>%
       ggplot(aes(x = month_year)) +
+      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list")) + # plot this first so latest date doesn't get overwritten
       geom_col(aes(y = waiting_list, fill = "Waiting list")) +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
@@ -367,8 +368,7 @@ server <- function(input, output, session) {
       theme(text = element_text(size = textsize), legend.position = "top") +
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) +
-      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list"))
+      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
 
     
     final_plot <- ggplotly(to_plot) %>% 
@@ -393,14 +393,14 @@ server <- function(input, output, session) {
         font = list(color = "#676361", size = textsize)
       ) %>%
       add_annotations(
-        text = "Waiting list at time of pledge, ~7.2M",
+        text = "Waiting list at pledge, ~7.2M",
         x = as.numeric(ymd("2023-01-01")),
         y = waiting_list_at_pledge,
         showarrow = TRUE,
         xref = "x",
         yref = "y",
         ax = 0,
-        ay = -50,
+        ay = -40,
         arrowsize = 0.5,
         arrowcolor = "#676361",
         textangle = 0,
