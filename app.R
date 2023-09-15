@@ -66,8 +66,8 @@ consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_complete
 
 choice_df <- data.frame("referrals_change" = c(4.6, 4.6, 4.6),
                         "outflow_change" = c(7.7, 7.7, 17.05),
-                        "jr_drs" = c(2, 17, 2),
-                        "consultant" = c(2, 17, 2),
+                        "jr_drs" = c(17, 2, 2),
+                        "consultant" = c(17, 2, 2),
                         "intensity" = c(90, 90, 90))
 
 
@@ -159,14 +159,13 @@ ui <- fluidPage(
                         ),
 
                   
-                
+                  hr(),
                   
                   # plot referrals and outflow
                   plotly::plotlyOutput("referrals_plot"),
                   
                   # plot waiting list
                   plotly::plotlyOutput("waiting_list_plot"),
-  
   
                   hr(),
   
@@ -183,13 +182,13 @@ server <- function(input, output, session) {
   
   output$preset_server <- renderUI({
     
-    high <- paste(choice_df[3, ], sep = " ", collapse=", ") 
-    medium <- paste(choice_df[2, ], sep = " ", collapse=", ") 
-    low <- paste(choice_df[1, ], sep = " ", collapse=", ")
+    strikes_cont <- "Scenario 1: Current growth rates, and strikes continue every month into January 2025"
+    no_strikes <- "Scenario 2: Current growth rates, with no further strike action after October 2023"
+    reach_130 <- "Scenario 3: Goal of reaching 30% more activity by 24/25 is reached, with no further strike action after October 2023" 
     
-    choice_values <- 3 : 1
+    choice_values <- 1:3
     
-    names(choice_values) <- c(high, medium, low)
+    names(choice_values) <- c(strikes_cont, no_strikes, reach_130)
     
     radioButtons("preset", "Choose an example scenario", choices = choice_values)
   })
