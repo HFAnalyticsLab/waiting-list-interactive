@@ -103,10 +103,10 @@ seasonality <- rtt_data %>%
 rtt_data <- rtt_data %>% 
   mutate(month_no = interval(ymd("2016-03-01"), month_year) %/% months(1))
 
-pre_pandemic_referrals_day <- lm(new_referrals_day_rate ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
-post_pandemic_referrals_day <- lm(new_referrals_day_rate ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),])
-pre_pandemic_activity_day <- lm(total_activity_day_rate ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
-post_pandemic_activity_day <- lm(total_activity_day_rate ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01") & rtt_data$month_year <= ymd("2023-03-01"),])
+pre_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
+post_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),])
+pre_pandemic_activity_day <- lm(total_activity_day_rate/activity_seasonality ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
+post_pandemic_activity_day <- lm(total_activity_day_rate/activity_seasonality ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01") & rtt_data$month_year <= ymd("2023-03-01"),])
 
 
 # fit a line to pre and post pandemic referrals and completed
@@ -135,8 +135,8 @@ rtt_data$activity_day_trend <- c(pre_pandemic_activity_day_line
 
 # multiply the day trendline to get month data
 rtt_data <- rtt_data %>% 
-  mutate(referrals_day_to_month = referrals_day_trend * workdays
-         , activity_day_to_month = activity_day_trend * workdays)
+  mutate(referrals_day_to_month = referrals_day_trend * workdays * referrals_seasonality
+         , activity_day_to_month = activity_day_trend * workdays * activity_seasonality)
 
 # get a monthly trendline based on "predicted" monthly rates
 pre_pandemic_referrals <- lm(referrals_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])

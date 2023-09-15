@@ -65,9 +65,9 @@ consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_complete
 ###### choices dataframe #####
 
 choice_df <- data.frame("referrals_change" = c(4.6, 4.6, 4.6),
-                        "outflow_change" = c(7.7, 7.7, 22),
-                        "jr_drs" = c(2, 17, 17),
-                        "consultant" = c(2, 17, 22),
+                        "outflow_change" = c(7.7, 7.7, 17.05),
+                        "jr_drs" = c(2, 17, 2),
+                        "consultant" = c(2, 17, 2),
                         "intensity" = c(90, 90, 90))
 
 
