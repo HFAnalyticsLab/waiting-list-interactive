@@ -80,6 +80,7 @@ monthlyRate <- function(x) {
 ###### colours and settings #####
 
 linesize <- .8
+trendlinesize <- linesize*.75
 thf_blue <- "#53a9cd"
 thf_lightblue <- "#A9D4E6"
 thf_red <- "#dd0031"
@@ -93,6 +94,8 @@ colors <- c("New referrals" = thf_blue
             , "Total outflow" = thf_red
             , "Predicted referrals" = thf_lightblue
             , "Predicted outflow" = thf_pink
+            , "Referrals linear trend" = thf_lightblue
+            , "Outflow linear trend" = thf_pink
             , "Waiting list" = thf_purple
             , "Predicted waiting list" = thf_lightpurple)
 
@@ -262,22 +265,20 @@ server <- function(input, output, session) {
       # Plot referrals and completeds on same graph
       to_plot <- predictions() %>% 
         ggplot(aes(x = month_year)) +
-        geom_line(aes(y = total_activity, color = "Total outflow"), size = linesize) +
-        geom_line(aes(y = new_referrals, color = "New referrals"), size = linesize) +
+        geom_line(aes(y = total_activity, color = "Total outflow"), linewidth = linesize) +
+        geom_line(aes(y = new_referrals, color = "New referrals"), linewidth = linesize) +
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
                      , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
                      , date_labels = "%b %Y") +
         scale_y_continuous(label = comma) +
         theme_minimal() +
-        geom_line(aes(y = referrals_trend, color = "Predicted referrals"), size = linesize) +
-        geom_line(aes(y = activity_trend, color = "Predicted outflow"), size = linesize) +
-        geom_line(aes(y = referrals_pred, color = "Predicted referrals"), linetype = 2, size = linesize) +
-        geom_line(aes(y = outflow_pred, color = "Predicted outflow"), linetype = 2, size = linesize) +
-        geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), 
-                linetype = 2, size = linesize) +
-        geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), 
-                  linetype = 2, size = linesize) +
+        geom_line(aes(y = referrals_trend, color = "Referrals linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = activity_trend, color = "Outflow linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_pred, color = "Referrals linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = outflow_pred, color = "Outflow linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), linewidth = linesize, alpha = 0.8) +
+        geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), linewidth = linesize, alpha = 0.8) +
         xlab("") +
         ylab("Number of pathways") +
         # ggtitle("New referrals and completed pathways") +
@@ -285,11 +286,29 @@ server <- function(input, output, session) {
         labs(color = "") +
         theme(text = element_text(size = textsize), legend.position = "top") +
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-        annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19") +
-        annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next\n general election") 
+        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
 
-      final_plot <- ggplotly(to_plot)
+      final_plot <- ggplotly(to_plot) %>% 
+        add_annotations(
+            text = "COVID-19",
+            x = as.numeric(ymd("2020-02-01")),
+            y = 250000,
+            showarrow = FALSE,
+            xref = "x",
+            yref = "y",
+            textangle = 270,
+            font = list(color = "#676361", size = textsize)
+           ) %>%
+         add_annotations(
+              text = "Deadline for next\n general election",
+            x = as.numeric(ymd("2024-11-15")),
+            y = 500000,
+            showarrow = FALSE,
+            xref = "x",
+            yref = "y",
+            textangle = 270,
+            font = list(color = "#676361", size = textsize)
+            )
       
       final_plot[['x']][['layout']][['shapes']] <- c()
       
@@ -311,6 +330,8 @@ server <- function(input, output, session) {
                                   x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                   
                                   y0 = 0, y1 = 1, yref = "paper")),
+                           
+                           list(x = as.numeric(ymd("2024-11-15")), y = 700000, text = "Deadline for next\n general election"),
                            
                            xaxis = list(tickangle = 315),
                            
@@ -346,11 +367,45 @@ server <- function(input, output, session) {
       theme(text = element_text(size = textsize), legend.position = "top") +
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "#676361", alpha = 0.8) +
+      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) +
       geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list"))
 
     
-    final_plot <- ggplotly(to_plot)
+    final_plot <- ggplotly(to_plot) %>% 
+      add_annotations(
+        text = "COVID-19",
+        x = as.numeric(ymd("2020-02-01")),
+        y = 2000000,
+        showarrow = FALSE,
+        xref = "x",
+        yref = "y",
+        textangle = 270,
+        font = list(color = "#676361", size = textsize)
+      ) %>%
+      add_annotations(
+        text = "Deadline for next\n general election",
+        x = as.numeric(ymd("2024-11-15")),
+        y = 2000000,
+        showarrow = FALSE,
+        xref = "x",
+        yref = "y",
+        textangle = 270,
+        font = list(color = "#676361", size = textsize)
+      ) %>%
+      add_annotations(
+        text = "Waiting list at time of pledge, ~7.2M",
+        x = as.numeric(ymd("2023-01-01")),
+        y = waiting_list_at_pledge,
+        showarrow = TRUE,
+        xref = "x",
+        yref = "y",
+        ax = 0,
+        ay = -50,
+        arrowsize = 0.5,
+        arrowcolor = "#676361",
+        textangle = 0,
+        font = list(color = "#676361", size = textsize-2)
+      )
     
     final_plot[['x']][['layout']][['shapes']] <- c()
     
