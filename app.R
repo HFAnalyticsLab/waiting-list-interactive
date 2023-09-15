@@ -81,18 +81,20 @@ monthlyRate <- function(x) {
 
 linesize <- .8
 thf_blue <- "#53a9cd"
-thf_lightblue <- "#7ebfda"
+thf_lightblue <- "#A9D4E6"
 thf_red <- "#dd0031"
-thf_pink <- "#ee7174"
+thf_pink <- "#EE8098"
 thf_purple <- "#744284"
 thf_teal <- "#2a7979"
+thf_lightpurple <- "#BAA1C2"
+thf_annotations <- "#CCC9C8"
 
-colors <- c("New referrals" = thf_red
-            , "Total outflow" = thf_blue
-            , "Predicted referrals" = thf_pink
-            , "Predicted outflow" = thf_lightblue
+colors <- c("New referrals" = thf_blue
+            , "Total outflow" = thf_red
+            , "Predicted referrals" = thf_lightblue
+            , "Predicted outflow" = thf_pink
             , "Waiting list" = thf_purple
-            , "Predicted waiting list" = thf_teal)
+            , "Predicted waiting list" = thf_lightpurple)
 
 textsize <- 14
 
@@ -102,13 +104,16 @@ ui <- fluidPage(
 
                   
                   # add help text at top
-                  h4("Choose parameters"),
-                  
+                  h3("Waiting list interactive calculator"),
                   
                   fluidRow(
-                    column(6, 
-                           uiOutput("preset_server"),
+                    column(4,
+                           h4("Choose from an example scenario"),
                            
+                           uiOutput("preset_server")),
+                    
+                    column(4, 
+                           h4("Change the percent by which new referrals and completed pathways increase or decrease"),
                            # number to choose referrals increases
                            numericInput("referrals_change", 
                                         "Referrals % change per year", 
@@ -124,7 +129,8 @@ ui <- fluidPage(
                                         value = 7.3
                                         )
                             ),
-                    column(6, 
+                    column(4, 
+                           h4("Change the number of strikes to add into the model"),
                            # number of junior doctor strike days to include
                            numericInput("jr_drs", 
                                         "Number of months of junior doctor strikes to include", 
@@ -145,14 +151,15 @@ ui <- fluidPage(
                                         min = 0,
                                         max = 100, 
                                         value = 90
-                                        )
+                                        ),
+                           # help text on strikes
+                           helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached."),
+                           
                            )
                         ),
 
                   
-                  # help text on strikes
-                  helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached."),
-
+                
                   
                   # plot referrals and outflow
                   plotly::plotlyOutput("referrals_plot"),
@@ -278,8 +285,8 @@ server <- function(input, output, session) {
         scale_color_manual(values = colors) +
         labs(color = "") +
         theme(text = element_text(size = textsize), legend.position = "top") +
-        annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
+        annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
+        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
         annotate("text", x = ymd("2020-02-15"), y = 250000, label = "COVID-19") +
         annotate("text", x = ymd("2024-11-15"), y = 700000, label = "Deadline for next\n general election") 
 
@@ -292,7 +299,7 @@ server <- function(input, output, session) {
                            shapes = list(
                              list(type = "rect",
                                   
-                                  fillcolor = "grey", line = list(color = "grey"), opacity = 0.2,
+                                  fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                   
                                   x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
                                   
@@ -300,7 +307,7 @@ server <- function(input, output, session) {
                              
                              list(type = "rect",
                                   
-                                  fillcolor = "grey", line = list(color = "grey"), opacity = 0.2,
+                                  fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                   
                                   x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                   
@@ -338,9 +345,9 @@ server <- function(input, output, session) {
       scale_fill_manual(values = colors) +
       labs(fill = "") +
       theme(text = element_text(size = textsize), legend.position = "top") +
-      annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-      annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.2) +
-      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "white", alpha = 0.8) +
+      annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
+      annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
+      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "#676361", alpha = 0.8) +
       geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list"))
 
     
@@ -353,7 +360,7 @@ server <- function(input, output, session) {
                          shapes = list(
                            list(type = "rect",
                                 
-                                fillcolor = "grey", line = list(color = "grey"), opacity = 0.2,
+                                fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                 
                                 x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
                                 
@@ -361,7 +368,7 @@ server <- function(input, output, session) {
                            
                            list(type = "rect",
                                 
-                                fillcolor = "grey", line = list(color = "grey"), opacity = 0.2,
+                                fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                 
                                 x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                 
