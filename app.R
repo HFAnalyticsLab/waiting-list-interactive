@@ -17,7 +17,7 @@ workdays_table <- readRDS("data/workdays_table.RDS")
 
 ##### Calculations outside shiny ####
 
-# point values of latest available data for plotting
+####### point values of latest available data for plotting ######
 latest_data <- ymd("2023-07-01")
 
 latest_workdays <- rtt_data[rtt_data$month_year == latest_data,]$workdays
@@ -28,7 +28,7 @@ latest_referrals_actual <- rtt_data[rtt_data$month_year == latest_data,]$new_ref
 latest_outflow_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
 waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-01",]$waiting_list
 
-# time dataframe
+######## time dataframe ######
 
 time_df <- data.frame(month_year = prediction_time <- seq(latest_data, ymd("2025-01-01"), by = "months") #  get all the dates for the 20 months
                       , month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)) # index for multiplying monthly rate -- start at 0 because not including latest data
@@ -39,7 +39,7 @@ time_df <- time_df %>%
   mutate(month = month(month_year)) %>% 
   left_join(seasonality, by = "month")
 
-# fixed assumptions
+###### fixed assumptions ######
 jr_dr_perc_consultant_led <- 0.73
 jr_dr_daily_cancel <- 22200
 consultant_daily_cancel <- 22900 
@@ -62,7 +62,7 @@ consultant_aug23_actual_cancellations <- 45827
 consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_completed_pathway
 
 
-## choices dataframe
+###### choices dataframe #####
 
 choice_df <- data.frame("referrals_change" = c(0, 4.6, 10),
                         "outflow_change" = c(0, 7.3, 10),
@@ -71,15 +71,15 @@ choice_df <- data.frame("referrals_change" = c(0, 4.6, 10),
                         "intensity" = c(60, 80, 100))
 
 
-# function for monthly rate
+####### function for monthly rate  #######
 monthlyRate <- function(x) {
   (1+(x/100))^(1/12)
 }
 
 
-# colours and settings
+###### colours and settings #####
 
-linesize <- 1
+linesize <- .8
 thf_blue <- "#53a9cd"
 thf_lightblue <- "#7ebfda"
 thf_red <- "#dd0031"
@@ -284,7 +284,7 @@ server <- function(input, output, session) {
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
                      , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                     , date_labels = "%Y") +
+                     , date_labels = "%b %Y") +
         scale_y_continuous(label = comma) +
         theme_minimal() +
         geom_line(aes(y = referrals_trend, color = "Predicted referrals"), size = linesize) +
@@ -295,9 +295,9 @@ server <- function(input, output, session) {
                 linetype = 2, size = linesize) +
         geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), 
                   linetype = 2, size = linesize) +
-        xlab("Months") +
+        xlab("") +
         ylab("Number of pathways") +
-        ggtitle("New referrals and completed pathways") +
+        # ggtitle("New referrals and completed pathways") +
         scale_color_manual(values = colors) +
         labs(color = "") +
         theme(text = element_text(size = textsize), legend.position = "top") +
@@ -315,7 +315,7 @@ server <- function(input, output, session) {
                            shapes = list(
                              list(type = "rect",
                                   
-                                  fillcolor = "grey", line = list(color = "grey"), opacity = 0.3,
+                                  fillcolor = "grey", line = list(color = "grey"), opacity = 0.2,
                                   
                                   x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
                                   
@@ -352,12 +352,12 @@ server <- function(input, output, session) {
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
                    , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                   , date_labels = "%Y") +
+                   , date_labels = "%b %Y") +
       scale_y_continuous(label = comma) +
       theme_minimal() +
-      xlab("Months") +
+      xlab("") +
       ylab("Waiting list size") +
-      ggtitle("Waiting list") +
+      # ggtitle("Waiting list") +
       scale_fill_manual(values = colors) +
       labs(fill = "") +
       theme(text = element_text(size = textsize), legend.position = "top") +
@@ -376,7 +376,7 @@ server <- function(input, output, session) {
                          shapes = list(
                            list(type = "rect",
                                 
-                                fillcolor = "grey", line = list(color = "grey"), opacity = 0.3,
+                                fillcolor = "grey", line = list(color = "grey"), opacity = 0.2,
                                 
                                 x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
                                 
