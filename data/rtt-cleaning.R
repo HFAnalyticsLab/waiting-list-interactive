@@ -101,7 +101,9 @@ seasonality <- rtt_data %>%
 
 # Add a month number column 
 rtt_data <- rtt_data %>% 
-  mutate(month_no = interval(ymd("2016-03-01"), month_year) %/% months(1))
+  mutate(month_no = interval(ymd("2016-03-01"), month_year) %/% months(1)
+         , month = month(month_year)) %>% 
+  left_join(seasonality, by = "month")
 
 pre_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
 post_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),])
