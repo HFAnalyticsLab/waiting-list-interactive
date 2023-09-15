@@ -64,11 +64,11 @@ consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_complete
 
 ###### choices dataframe #####
 
-choice_df <- data.frame("referrals_change" = c(0, 4.6, 10),
-                        "outflow_change" = c(0, 7.3, 10),
-                        "jr_drs" = c(0, 10, 17),
-                        "consultant" = c(0, 10, 17),
-                        "intensity" = c(60, 80, 100))
+choice_df <- data.frame("referrals_change" = c(4.6, 4.6, 4.6),
+                        "outflow_change" = c(7.7, 7.7, 22),
+                        "jr_drs" = c(2, 17, 17),
+                        "consultant" = c(2, 17, 22),
+                        "intensity" = c(90, 90, 90))
 
 
 ####### function for monthly rate  #######
@@ -98,23 +98,16 @@ textsize <- 14
 
 ##### User interface #####
 ui <- fluidPage(
-  titlePanel("Waiting list interactive calculator"),
-  
-  # set the layout
-  sidebarLayout(position = "left",
-                
-                # add toggles in the sidebar
-                sidebarPanel(
+  title = ("Waiting list interactive calculator"),
+
                   
                   # add help text at top
                   h4("Choose parameters"),
                   
                   
-                  uiOutput("preset_server"),
-                  
-                  
                   fluidRow(
                     column(6, 
+                           uiOutput("preset_server"),
                            
                            # number to choose referrals increases
                            numericInput("referrals_change", 
@@ -122,19 +115,15 @@ ui <- fluidPage(
                                         min = -20,
                                         max = 20, 
                                         value = 4.6
-                           )),
-                    column(6,
+                                       ),
+                           # number to choose outflow increases
                            numericInput("outflow_change", 
                                         "Completed pathways % change per year", 
                                         min = -20,
                                         max = 20, 
                                         value = 7.3
-                           )
-                    )),
-                  
-                  # number to choose outflow increases
-                  
-                  fluidRow(
+                                        )
+                            ),
                     column(6, 
                            # number of junior doctor strike days to include
                            numericInput("jr_drs", 
@@ -142,52 +131,40 @@ ui <- fluidPage(
                                         min = 0,
                                         max = 17, 
                                         value = 17 
-                           )),
-                    column(6, 
+                                        ),
                            # number of consultant strike days to include
                            numericInput("consultant", 
                                         "Number of of months of consultant strikes to include", 
                                         min = 0,
                                         max = 17, 
                                         value = 17 
-                           ))
-                  ),
-                  
-                  fluidRow(
-                    column(6, 
+                                        ),
                            # strike intensity
                            numericInput("intensity", 
                                         "Strike intensity %", 
                                         min = 0,
                                         max = 100, 
                                         value = 90
-                           )),
-                    column(6)
-                  ),
+                                        )
+                           )
+                        ),
+
                   
                   # help text on strikes
                   helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached."),
 
                   
-                  hr(),
-                  
-                  downloadButton("download_data", "Download data"),
-                  
-                  width = 3
-                  
-                ),
-                
-                # add graph and title in main panel
-                mainPanel(
-                  
                   # plot referrals and outflow
                   plotly::plotlyOutput("referrals_plot"),
                   
                   # plot waiting list
-                  plotly::plotlyOutput("waiting_list_plot")
-                  
-                )
-  )
+                  plotly::plotlyOutput("waiting_list_plot"),
+  
+  
+                  hr(),
+  
+                  downloadButton("download_data", "Download data")
+
 )
 
 ##### Server logic #####
@@ -207,7 +184,7 @@ server <- function(input, output, session) {
     
     names(choice_values) <- c(high, medium, low)
     
-    radioButtons("preset", "Choose preset values", choices = choice_values)
+    radioButtons("preset", "Choose an example scenario", choices = choice_values)
   })
   
   observe({
