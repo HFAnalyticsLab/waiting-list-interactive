@@ -103,9 +103,13 @@ textsize <- 14
 
 ##### User interface #####
 ui <- fluidPage(
-  title = ("Waiting list interactive calculator"),
+  
+      includeCSS("www/CSS.css"),
+      
+      tags$head(tags$style(HTML('* {font-family: "LTUnivers 330 BasicLight"};'))),
+  
+      title = ("Waiting list interactive calculator"),
 
-                  
                   # add help text at top
                   h3("Waiting list interactive calculator"),
                   
@@ -270,7 +274,7 @@ server <- function(input, output, session) {
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
                      , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                     , date_labels = "%b %Y") +
+                     , date_labels = "%b-%y") +
         scale_y_continuous(label = comma) +
         theme_minimal() +
         geom_line(aes(y = referrals_trend, color = "Referrals linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
@@ -357,7 +361,7 @@ server <- function(input, output, session) {
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
                    , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                   , date_labels = "%b %Y") +
+                   , date_labels = "%b-%y") +
       scale_y_continuous(label = comma) +
       theme_minimal() +
       xlab("") +
