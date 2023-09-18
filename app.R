@@ -93,18 +93,18 @@ thf_annotations <- "#CCC9C8"
 
 colors <- c("New referrals" = thf_blue
             , "Total outflow" = thf_red
-            , "Predicted referrals" = thf_lightblue
-            , "Predicted outflow" = thf_pink
+            , "Projected referrals" = thf_lightblue
+            , "Projected outflow" = thf_pink
             , "Referrals linear trend" = thf_lightblue
             , "Outflow linear trend" = thf_pink
             , "Waiting list" = thf_purple
-            , "Predicted waiting list" = thf_lightpurple)
+            , "Projected waiting list" = thf_lightpurple)
 
 ## font:
 
 textsize <- 14
 
-font_paths("www/")
+#font_paths("www/")
 #font_add(family = "LTUnivers 330 BasicLight", regular = "LTUnivers 330 BasicLight.ttf")
 
 ##### User interface #####
@@ -287,14 +287,14 @@ server <- function(input, output, session) {
         geom_line(aes(y = activity_trend, color = "Outflow linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = referrals_pred, color = "Referrals linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = outflow_pred, color = "Outflow linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals"), linewidth = linesize, alpha = 0.8) +
-        geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow"), linewidth = linesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals"), linewidth = linesize, alpha = 0.8) +
+        geom_line(aes(y = outflow_pred_seasonal, color = "Projected outflow"), linewidth = linesize, alpha = 0.8) +
         xlab("") +
         ylab("Number of pathways") +
         # ggtitle("New referrals and completed pathways") +
         scale_color_manual(values = colors) +
         labs(color = "") +
-        theme(text = element_text(size = textsize, family = "univers"), legend.position = "top") +
+        theme(text = element_text(size = textsize, family = "LTUnivers 330 BasicLight"), legend.position = "top") +
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
 
@@ -307,7 +307,7 @@ server <- function(input, output, session) {
             xref = "x",
             yref = "y",
             textangle = 270,
-            font = list(color = "#676361", size = textsize)
+            font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
            ) %>%
          add_annotations(
               text = "Deadline for next\n general election",
@@ -317,7 +317,7 @@ server <- function(input, output, session) {
             xref = "x",
             yref = "y",
             textangle = 270,
-            font = list(color = "#676361", size = textsize)
+            font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
             )
       
       final_plot[['x']][['layout']][['shapes']] <- c()
@@ -362,7 +362,7 @@ server <- function(input, output, session) {
     
     to_plot <- predictions() %>%
       ggplot(aes(x = month_year)) +
-      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list")) + # plot this first so latest date doesn't get overwritten
+      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Projected waiting list")) + # plot this first so latest date doesn't get overwritten
       geom_col(aes(y = waiting_list, fill = "Waiting list")) +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
@@ -375,7 +375,7 @@ server <- function(input, output, session) {
       # ggtitle("Waiting list") +
       scale_fill_manual(values = colors) +
       labs(fill = "") +
-      theme(text = element_text(size = textsize, family = "univers"), legend.position = "top") +
+      theme(text = element_text(size = textsize, family = "LTUnivers 330 BasicLight"), legend.position = "top") +
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
@@ -390,7 +390,7 @@ server <- function(input, output, session) {
         xref = "x",
         yref = "y",
         textangle = 270,
-        font = list(color = "#676361", size = textsize)
+        font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
       ) %>%
       add_annotations(
         text = "Deadline for next\n general election",
@@ -400,7 +400,7 @@ server <- function(input, output, session) {
         xref = "x",
         yref = "y",
         textangle = 270,
-        font = list(color = "#676361", size = textsize)
+        font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
       ) %>%
       add_annotations(
         text = "Waiting list at pledge, ~7.2M",
