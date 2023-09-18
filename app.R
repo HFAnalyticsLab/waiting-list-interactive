@@ -294,7 +294,7 @@ server <- function(input, output, session) {
         # ggtitle("New referrals and completed pathways") +
         scale_color_manual(values = colors) +
         labs(color = "") +
-        theme(text = element_text(size = textsize), legend.position = "top") +
+        theme(text = element_text(size = textsize, family = "univers"), legend.position = "top") +
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
 
@@ -375,7 +375,7 @@ server <- function(input, output, session) {
       # ggtitle("Waiting list") +
       scale_fill_manual(values = colors) +
       labs(fill = "") +
-      theme(text = element_text(size = textsize), legend.position = "top") +
+      theme(text = element_text(size = textsize, family = "univers"), legend.position = "top") +
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
