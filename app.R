@@ -8,6 +8,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 library(shiny)
+library(showtext)
 
 ##### Load data #####
 
@@ -99,7 +100,12 @@ colors <- c("New referrals" = thf_blue
             , "Waiting list" = thf_purple
             , "Predicted waiting list" = thf_lightpurple)
 
+## font:
+
 textsize <- 14
+
+font_paths("www/")
+#font_add(family = "LTUnivers 330 BasicLight", regular = "LTUnivers 330 BasicLight.ttf")
 
 ##### User interface #####
 ui <- fluidPage(
