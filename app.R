@@ -1,20 +1,5 @@
 ## Elective care pledge Shiny app ##
 
-# Kept getting eror @namespace ‘fastmap’ 1.1.0 is already loaded, but >= 1.1.1 is required@, manually running the code beloww solved it 
-# library(fastmap) #Same for this
-# library(cli) #Need to load this as otherwise wrong version got loaded by later package
-# library(htmltools)
-# remove.packages("htmltools")
-#  remove.packages("fastmap")
-#  install.packages("fastmap")
-unloadNamespace("plotly")
-unloadNamespace("htmlwidgets")
-unloadNamespace("htmltools")
-unloadNamespace("fastmap")
-library(fastmap)
-
-#renv::restore()
-
 # load packages
 library(janitor)
 library(lubridate)
@@ -23,6 +8,7 @@ library(ggplot2)
 library(scales)
 library(shiny)
 library(plotly)
+library(fastmap)
 
 ##### Load data #####
 
@@ -110,10 +96,10 @@ thf_annotations <- "#CCC9C8"
 
 colors <- c("New referrals" = thf_blue
             , "Total outflow" = thf_red
-            , "Predicted referrals" = thf_lightblue
-            , "Predicted outflow" = thf_pink
+            , "Projected referrals" = thf_lightblue
+            , "Projected outflow" = thf_pink
             , "Waiting list" = thf_purple
-            , "Predicted waiting list" = thf_lightpurple)
+            , "Projected waiting list" = thf_lightpurple)
 
 textsize <- 14
 
@@ -300,41 +286,41 @@ server <- function(input, output, session) {
                      , date_labels = "%b %Y") +
         scale_y_continuous(label = comma) +
         theme_minimal() +
-        geom_line(aes(y = referrals_trend, color = "Predicted referrals", 
+        geom_line(aes(y = referrals_trend, color = "Projected referrals", 
                       group=1,
                       text = paste(
                         "Date:", format(month_year, "%B %Y"), 
-                        "<br>Predicted referrals:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected referrals:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
                       size = linesize) +
-        geom_line(aes(y = activity_trend, color = "Predicted outflow",
+        geom_line(aes(y = activity_trend, color = "Projected outflow",
                       group=1,
                       text = paste(
                         "Date:", format(month_year, "%B %Y"), 
-                        "<br>Predicted outflow:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected outflow:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
                   size = linesize) +
-        geom_line(aes(y = referrals_pred, color = "Predicted referrals",
+        geom_line(aes(y = referrals_pred, color = "Projected referrals",
                       group=1,
                       text = paste(
                         "Date:", format(month_year, "%B %Y"), 
-                        "<br>Predicted referrals:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected referrals:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 2, size = linesize) +
-        geom_line(aes(y = outflow_pred, color = "Predicted outflow", 
+        geom_line(aes(y = outflow_pred, color = "Projected outflow", 
                   group=1,
                   text = paste(
                     "Date:", format(month_year, "%B %Y"), 
-                    "<br>Predicted outflow:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
+                    "<br>Projected outflow:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
       linetype = 2, size = linesize) +
-        geom_line(aes(y = referrals_pred_seasonal, color = "Predicted referrals",
+        geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals",
                       group=1,
                       text = paste(
                         "Date:", format(month_year, "%B %Y"), 
-                        "<br>Predicted referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
                 linetype = 2, size = linesize) +
-        geom_line(aes(y = outflow_pred_seasonal, color = "Predicted outflow",
+        geom_line(aes(y = outflow_pred_seasonal, color = "Projected outflow",
                       group=1,
                       text = paste(
                         "Date:", format(month_year, "%B %Y"), 
-                        "<br>Predicted outflow:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected outflow:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
                   linetype = 2, size = linesize) +
         xlab("") +
         ylab("Number of pathways") +
@@ -408,10 +394,10 @@ server <- function(input, output, session) {
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 2, color = "#676361", alpha = 0.8) +
-      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Predicted waiting list",
+      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Projected waiting list",
                    text = paste(
                      "Date:", format(month_year, "%B %Y"), 
-                     "<br>Predicted waiting list:", format(round(as.numeric(waiting_list_pred_seasonal), 1), nsmall=1, big.mark=","))))
+                     "<br>Projected waiting list:", format(round(as.numeric(waiting_list_pred_seasonal), 1), nsmall=1, big.mark=","))))
 
     
     final_plot <- ggplotly(to_plot, tooltip = "text")
