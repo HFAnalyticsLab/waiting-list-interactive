@@ -65,8 +65,8 @@ consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_complete
 
 ###### choices dataframe #####
 
-choice_df <- data.frame("referrals_change" = c(4.6, 4.6, 4.6),
-                        "outflow_change" = c(7.7, 7.7, 17.05),
+choice_df <- data.frame("referrals_change" = c(5, 5, 5),
+                        "outflow_change" = c(7.8, 7.8, 16.9),
                         "jr_drs" = c(17, 2, 2),
                         "consultant" = c(17, 2, 2),
                         "intensity" = c(90, 90, 90))
@@ -102,7 +102,7 @@ colors <- c("New referrals" = thf_blue
 
 ## font:
 
-textsize <- 14
+textsize <- 12
 
 #font_paths("www/")
 #font_add(family = "LTUnivers 330 BasicLight", regular = "LTUnivers 330 BasicLight.ttf")
@@ -132,14 +132,14 @@ ui <- fluidPage(
                                         "Referrals % change per year", 
                                         min = -20,
                                         max = 20, 
-                                        value = 4.6
+                                        value = 5
                                        ),
                            # number to choose outflow increases
                            numericInput("outflow_change", 
                                         "Completed pathways % change per year", 
                                         min = -20,
                                         max = 20, 
-                                        value = 7.3
+                                        value = 7.8
                                         )
                             ),
                     column(4, 
@@ -414,7 +414,7 @@ server <- function(input, output, session) {
         arrowsize = 0.5,
         arrowcolor = "#676361",
         textangle = 0,
-        font = list(color = "#676361", size = textsize-2)
+        font = list(color = "#676361", size = textsize-1)
       )
     
     final_plot[['x']][['layout']][['shapes']] <- c()
