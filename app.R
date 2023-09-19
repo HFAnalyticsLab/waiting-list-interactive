@@ -280,13 +280,13 @@ server <- function(input, output, session) {
                       text = paste(
                         "Date:", format(month_year, "%B %Y"), 
                         "<br>Total outflow:", format(round(as.numeric(total_activity), 1), nsmall=1, big.mark=","))),
-                  size = linesize) +
+                  linewidth = linesize) +
         geom_line(aes(y = new_referrals, color = "New referrals", 
                       group=1,
                       text = paste(
                         "Date:", format(month_year, "%B %Y"), 
                         "<br>New referrals:", format(round(as.numeric(new_referrals), 1), nsmall=1, big.mark=","))),
-                  size = linesize) +
+                  linewidth = linesize) +
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
                      , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
