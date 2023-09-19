@@ -498,8 +498,7 @@ server <- function(input, output, session) {
     
     filename = "data.csv",
     content = function(file) {
-      write.csv(predictions() %>%
-                  select(-month), file, row.names = F)
+      write.csv(predictions(), file, row.names = F)
     }
   )
 }
