@@ -108,7 +108,7 @@ rtt_data <- rtt_data %>%
 pre_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
 post_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),])
 pre_pandemic_activity_day <- lm(total_activity_day_rate/activity_seasonality ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
-post_pandemic_activity_day <- lm(total_activity_day_rate/activity_seasonality ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01") & rtt_data$month_year <= ymd("2023-03-01"),])
+post_pandemic_activity_day <- lm(total_activity_day_rate/activity_seasonality ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01") & rtt_data$month_year <= ymd("2023-02-01"),])
 
 
 # fit a line to pre and post pandemic referrals and completed
