@@ -123,7 +123,7 @@ post_pandemic_activity_day_line <- predict(post_pandemic_activity_day)
 # predict "counterfactual" of no IA after March 23
 
 # get countefactual dates
-no_ia_counterfactual <- data.frame(month_year = seq(ymd("2023-04-01"), latest_data, by = "months")) %>% 
+no_ia_counterfactual <- data.frame(month_year = seq(ymd("2023-03-01"), latest_data, by = "months")) %>% 
   mutate(month_no = interval(ymd("2016-03-01"), month_year) %/% months(1))
 
 # put predictions together to get day trendlines
