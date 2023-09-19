@@ -275,20 +275,60 @@ server <- function(input, output, session) {
       # Plot referrals and completeds on same graph
       to_plot <- predictions() %>% 
         ggplot(aes(x = month_year)) +
-        geom_line(aes(y = total_activity, color = "Total outflow"), linewidth = linesize) +
-        geom_line(aes(y = new_referrals, color = "New referrals"), linewidth = linesize) +
+        geom_line(aes(y = total_activity, color = "Total outflow",
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>Total outflow:", format(round(as.numeric(total_activity), 1), nsmall=1, big.mark=","))),
+                  size = linesize) +
+        geom_line(aes(y = new_referrals, color = "New referrals", 
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>New referrals:", format(round(as.numeric(new_referrals), 1), nsmall=1, big.mark=","))),
+                  size = linesize) +
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
                      , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
                      , date_labels = "%b-%y") +
         scale_y_continuous(label = comma) +
         theme_minimal() +
-        geom_line(aes(y = referrals_trend, color = "Referrals linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = activity_trend, color = "Outflow linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = referrals_pred, color = "Referrals linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = outflow_pred, color = "Outflow linear trend"), linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals"), linewidth = linesize, alpha = 0.8) +
-        geom_line(aes(y = outflow_pred_seasonal, color = "Projected outflow"), linewidth = linesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_trend, color = "Referrals linear trend",
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>Referrals linear trend:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
+                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = activity_trend, color = "Outflow linear trend",
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>Outflow linear trend:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
+                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_pred, color = "Referrals linear trend",
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>Referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
+                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = outflow_pred, color = "Outflow linear trend",
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>Outflow linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
+                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals",
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>Projected referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                  linewidth = linesize, alpha = 0.8) +
+        geom_line(aes(y = outflow_pred_seasonal, color = "Projected outflow",
+                      group=1,
+                      text = paste(
+                        "Date:", format(month_year, "%B %Y"), 
+                        "<br>Projected outflow:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                  linewidth = linesize, alpha = 0.8) +
         xlab("") +
         ylab("Number of pathways") +
         # ggtitle("New referrals and completed pathways") +
@@ -298,7 +338,7 @@ server <- function(input, output, session) {
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
 
-      final_plot <- ggplotly(to_plot) %>% 
+      final_plot <- ggplotly(to_plot, tooltip = "text") #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
         add_annotations(
             text = "COVID-19",
             x = as.numeric(ymd("2020-02-01")),
@@ -362,8 +402,14 @@ server <- function(input, output, session) {
     
     to_plot <- predictions() %>%
       ggplot(aes(x = month_year)) +
-      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Projected waiting list")) + # plot this first so latest date doesn't get overwritten
-      geom_col(aes(y = waiting_list, fill = "Waiting list")) +
+      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Projected waiting list",
+                   text = paste(
+                     "Date:", format(month_year, "%B %Y"), 
+                     "<br>Projected waiting list:", format(round(as.numeric(waiting_list_pred_seasonal), 1), nsmall=1, big.mark=",")))) + # plot this first so latest date doesn't get overwritten
+      geom_col(aes(y = waiting_list, fill = "Waiting list",
+                   text = paste(
+                     "Date:", format(month_year, "%B %Y"), 
+                     "<br>Waiting list:", format(round(as.numeric(waiting_list), 1), nsmall=1, big.mark=","))))  +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
                    , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
@@ -381,7 +427,7 @@ server <- function(input, output, session) {
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
 
     
-    final_plot <- ggplotly(to_plot) %>% 
+    final_plot <- ggplotly(to_plot, tooltip = "text") %>% 
       add_annotations(
         text = "COVID-19",
         x = as.numeric(ymd("2020-02-01")),
