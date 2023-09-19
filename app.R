@@ -338,7 +338,7 @@ server <- function(input, output, session) {
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
 
-      final_plot <- ggplotly(to_plot, tooltip = "text") #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
+      final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
         add_annotations(
             text = "COVID-19",
             x = as.numeric(ymd("2020-02-01")),
