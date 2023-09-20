@@ -189,10 +189,16 @@ ui <- fluidPage(
                   
                   # plot waiting list
                   plotly::plotlyOutput("waiting_list_plot"),
+      
+                  downloadButton("download_data", "Download data"),
   
                   hr(),
   
-                  downloadButton("download_data", "Download data")
+                  fluidRow(
+                    column(4, img(src= "THF-copyright.png", align = "left", height = "50%", width = "50%")),
+                    column(8, HTML("Source: <a href=https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/>NHS England Consultant-led Referral to Treatment Waiting Times Data</a>. Data to July 2023."))
+                    )
+                           
 
 )
 
@@ -237,7 +243,7 @@ server <- function(input, output, session) {
                                                , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
              , outflow_pred_seasonal = if_else(month_no == 0
                                                , latest_outflow_actual
-                                               , latest_outflow/latest_workdays * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
+                                               , (latest_outflow/latest_workdays) * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
         ) %>% 
 
         
