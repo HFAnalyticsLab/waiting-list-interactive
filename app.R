@@ -53,9 +53,8 @@ jr_dr_start_val <- jr_dr_daily_cancel * perc_result_completed_pathway * jr_dr_st
 consultant_start_val <- consultant_daily_cancel * perc_result_completed_pathway * consultant_strike_days_per_month
 
 # include actual cancellations in july and august to predicted
-jr_dr_aug23_actual_cancellations <- 61200
-jr_dr_aug23_actual_cancellations_appt <- 26719
-jr_dr_aug23_actual_cancellations_proc <- 3882
+jr_dr_aug23_actual_cancellations_appt <- 53437
+jr_dr_aug23_actual_cancellations_proc <- 7763
 
 jr_dr_aug23 <- ((jr_dr_aug23_actual_cancellations_appt * jr_dr_perc_consultant_led) + jr_dr_aug23_actual_cancellations_proc) * perc_result_completed_pathway
 
