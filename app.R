@@ -79,7 +79,7 @@ monthlyRate <- function(x) {
 
 ###### colours and settings #####
 
-linesize <- .8
+linesize <- .7
 trendlinesize <- linesize*.75
 thf_blue <- "#53a9cd"
 thf_lightblue <- "#A9D4E6"
@@ -89,13 +89,18 @@ thf_purple <- "#744284"
 thf_teal <- "#2a7979"
 thf_lightpurple <- "#BAA1C2"
 thf_annotations <- "#CCC9C8"
+referrals_colour <- "#7EBFDA"
+referrals_trend_colour <- "#005078"
+completed_colour <- "#EE9B90"
+completed_trend_colour <- "#dd0031"
 
-colors <- c("New referrals" = thf_blue
-            , "Total outflow" = thf_red
-            , "Projected referrals" = thf_lightblue
-            , "Projected outflow" = thf_pink
-            , "Referrals linear trend" = thf_lightblue
-            , "Outflow linear trend" = thf_pink
+
+colors <- c("New referrals" = referrals_colour
+            , "Total completed pathways" = completed_colour
+            , "Projected referrals" = thf_blue
+            , "Projected completed pathways" = thf_red
+            , "Referrals linear trend" = referrals_trend_colour
+            , "Completed pathways linear trend" = completed_trend_colour
             , "Waiting list" = thf_purple
             , "Projected waiting list" = thf_lightpurple)
 
@@ -103,8 +108,6 @@ colors <- c("New referrals" = thf_blue
 
 textsize <- 12
 
-#font_paths("www/")
-#font_add(family = "LTUnivers 330 BasicLight", regular = "LTUnivers 330 BasicLight.ttf")
 
 ##### User interface #####
 ui <- fluidPage(
@@ -140,7 +143,7 @@ ui <- fluidPage(
                                         max = 20, 
                                         value = 5
                                        ),
-                           # number to choose outflow increases
+                           # number to choose completed pathways increases
                            numericInput("outflow_change", 
                                         "Completed pathways % change per year", 
                                         min = -20,
@@ -241,10 +244,10 @@ server <- function(input, output, session) {
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
-        mutate(jr_dr_cancellations = case_when(input$jr_drs > month_no & month_no >= 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 1)
+        mutate(jr_dr_cancellations = case_when(input$jr_drs + 2 > month_no & month_no >= 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 1)
                                                , month_no == 1 ~ jr_dr_aug23
                                                , TRUE ~ 0)
-               , consultant_cancellations =  case_when(input$consultant > month_no & month_no >= 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 1)
+               , consultant_cancellations =  case_when(input$consultant + 2 > month_no & month_no >= 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 1)
                                                        , month_no == 1 ~ consultant_aug23                                                   
                                                        , TRUE ~ 0)
         ) %>%
@@ -282,11 +285,11 @@ server <- function(input, output, session) {
       # Plot referrals and completeds on same graph
       to_plot <- predictions() %>% 
         ggplot(aes(x = month_year)) +
-        geom_line(aes(y = total_activity, color = "Total outflow",
+        geom_line(aes(y = total_activity, color = "Total completed pathways",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Total outflow:", format(round(as.numeric(total_activity), 1), nsmall=1, big.mark=","))),
+                        "<br>Total completed pathways:", format(round(as.numeric(total_activity), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize) +
         geom_line(aes(y = new_referrals, color = "New referrals", 
                       group=1,
@@ -306,11 +309,11 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>Referrals linear trend:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = activity_trend, color = "Outflow linear trend",
+        geom_line(aes(y = activity_trend, color = "Completed pathways linear trend",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Outflow linear trend:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
+                        "<br>Completed pathways linear trend:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = referrals_pred, color = "Referrals linear trend",
                       group=1,
@@ -318,11 +321,11 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>Referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = outflow_pred, color = "Outflow linear trend",
+        geom_line(aes(y = outflow_pred, color = "Completed pathways linear trend",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Outflow linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
+                        "<br>Completed pathways linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals",
                       group=1,
@@ -330,11 +333,11 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>Projected referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize, alpha = 0.8) +
-        geom_line(aes(y = outflow_pred_seasonal, color = "Projected outflow",
+        geom_line(aes(y = outflow_pred_seasonal, color = "Projected completed pathways",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Projected outflow:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected completed pathways:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize, alpha = 0.8) +
         xlab("") +
         ylab("Number of pathways") +
