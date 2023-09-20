@@ -111,7 +111,9 @@ ui <- fluidPage(
   
       includeCSS("www/CSS.css"),
       
-      tags$head(tags$style(HTML('* {font-family: "LTUnivers 330 BasicLight"};'))),
+      tags$head(tags$style(HTML('* {font-family: "LTUnivers 330 BasicLight"};'))
+                , includeHTML("www/google-tags.html")
+                ),
   
       title = ("Waiting list interactive calculator"),
 
@@ -121,7 +123,7 @@ ui <- fluidPage(
                   fluidRow(column(12, h5("Use the interactive calculator to test out our example scenarios, 
                               or try your own to understand how the waiting list will change 
                               between now and December 2024 as a result of changing referrals, 
-                              completed pathways and industrial action"))),
+                              completed pathways and industrial action."))),
                   
                   fluidRow(
                     column(4,
