@@ -153,7 +153,7 @@ ui <- fluidPage(
                                         ),
                            # number of consultant strike days to include
                            numericInput("consultant", 
-                                        "Number of of months of consultant strikes to include", 
+                                        "Number of months of consultant strikes to include", 
                                         min = 0,
                                         max = 17, 
                                         value = 17 
@@ -278,13 +278,13 @@ server <- function(input, output, session) {
         geom_line(aes(y = total_activity, color = "Total outflow",
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>Total outflow:", format(round(as.numeric(total_activity), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize) +
         geom_line(aes(y = new_referrals, color = "New referrals", 
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>New referrals:", format(round(as.numeric(new_referrals), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize) +
         scale_x_date(date_breaks = "1 year"
@@ -296,37 +296,37 @@ server <- function(input, output, session) {
         geom_line(aes(y = referrals_trend, color = "Referrals linear trend",
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>Referrals linear trend:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = activity_trend, color = "Outflow linear trend",
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>Outflow linear trend:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = referrals_pred, color = "Referrals linear trend",
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>Referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = outflow_pred, color = "Outflow linear trend",
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>Outflow linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals",
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>Projected referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize, alpha = 0.8) +
         geom_line(aes(y = outflow_pred_seasonal, color = "Projected outflow",
                       group=1,
                       text = paste(
-                        "Date:", format(month_year, "%B %Y"), 
+                        format(month_year, "%B %Y"), 
                         "<br>Projected outflow:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize, alpha = 0.8) +
         xlab("") +
@@ -404,11 +404,11 @@ server <- function(input, output, session) {
       ggplot(aes(x = month_year)) +
       geom_col(aes(y = waiting_list_pred_seasonal, fill = "Projected waiting list",
                    text = paste(
-                     "Date:", format(month_year, "%B %Y"), 
+                     format(month_year, "%B %Y"), 
                      "<br>Projected waiting list:", format(round(as.numeric(waiting_list_pred_seasonal), 1), nsmall=1, big.mark=",")))) + # plot this first so latest date doesn't get overwritten
       geom_col(aes(y = waiting_list, fill = "Waiting list",
                    text = paste(
-                     "Date:", format(month_year, "%B %Y"), 
+                     format(month_year, "%B %Y"), 
                      "<br>Waiting list:", format(round(as.numeric(waiting_list), 1), nsmall=1, big.mark=","))))  +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
@@ -498,8 +498,7 @@ server <- function(input, output, session) {
     
     filename = "data.csv",
     content = function(file) {
-      write.csv(predictions() %>%
-                  select(-month), file, row.names = F)
+      write.csv(predictions(), file, row.names = F)
     }
   )
 }
