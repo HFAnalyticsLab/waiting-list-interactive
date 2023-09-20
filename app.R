@@ -239,10 +239,10 @@ server <- function(input, output, session) {
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
-        mutate(jr_dr_cancellations = case_when(input$jr_drs > month_no & month_no > 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 1)
+        mutate(jr_dr_cancellations = case_when(input$jr_drs > month_no & month_no >= 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 1)
                                                , month_no == 1 ~ jr_dr_aug23
                                                , TRUE ~ 0)
-               , consultant_cancellations =  case_when(input$consultant > month_no & month_no > 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 1)
+               , consultant_cancellations =  case_when(input$consultant > month_no & month_no >= 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 1)
                                                        , month_no == 1 ~ consultant_aug23                                                   
                                                        , TRUE ~ 0)
         ) %>%
