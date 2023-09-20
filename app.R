@@ -119,6 +119,11 @@ ui <- fluidPage(
                   # add help text at top
                   h3("Waiting list interactive calculator"),
                   
+                  fluidRow(column(12, h5("Use the interactive calculator to test out our example scenarios, 
+                              or try your own to understand how the waiting list will change 
+                              between now and December 2024 as a result of changing referrals, 
+                              completed pathways and industrial action"))),
+                  
                   fluidRow(
                     column(4,
                            h4("Choose from an example scenario"),
@@ -166,7 +171,8 @@ ui <- fluidPage(
                                         value = 90
                                         ),
                            # help text on strikes
-                           helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached."),
+                           helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
+                                    Strike intensity informs the proportion of cancellations from the previous month seen in the current month "),
                            
                            )
                         ),
