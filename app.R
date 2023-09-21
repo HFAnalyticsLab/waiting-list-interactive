@@ -79,8 +79,8 @@ monthlyRate <- function(x) {
 
 ###### colours and settings #####
 
-linesize <- .7
-trendlinesize <- linesize*.75
+linesize <- .4
+trendlinesize <- linesize
 thf_blue <- "#53a9cd"
 thf_lightblue <- "#A9D4E6"
 thf_red <- "#dd0031"
@@ -88,17 +88,19 @@ thf_pink <- "#EE8098"
 thf_purple <- "#744284"
 thf_teal <- "#2a7979"
 thf_lightpurple <- "#BAA1C2"
-thf_annotations <- "#CCC9C8"
+thf_annotations <- "#F1F0EF"
 referrals_colour <- "#7EBFDA"
 referrals_trend_colour <- "#005078"
 completed_colour <- "#EE9B90"
 completed_trend_colour <- "#dd0031"
+axis_colour <- "#999390"
+grid_colour <- "#E2DFD8"
 
 
 colors <- c("New referrals" = referrals_colour
             , "Total completed pathways" = completed_colour
-            , "Projected referrals" = thf_blue
-            , "Projected completed pathways" = thf_red
+            , "Projected referrals" = referrals_colour
+            , "Projected completed pathways" = completed_colour
             , "Referrals linear trend" = referrals_trend_colour
             , "Completed pathways linear trend" = completed_trend_colour
             , "Waiting list" = thf_purple
@@ -114,14 +116,17 @@ ui <- fluidPage(
   
       includeCSS("www/CSS.css"),
       
-      tags$head(tags$style(HTML('* {font-family: "LTUnivers 330 BasicLight"};'))
-                , includeHTML("www/google-tags.html")
+      tags$head(tags$style(
+        HTML('* {font-family: "LTUnivers 330 BasicLight"}
+             ')
+      )
+            , includeHTML("www/google-tags.html")
                 ),
   
       title = ("Waiting list interactive calculator"),
 
                   # add help text at top
-                  h3("Waiting list interactive calculator"),
+                  h2("Waiting list interactive calculator", style = "font-family: 'Linotype Univers 530 Medium';"),
                   
                   fluidRow(column(12, h5("Use the interactive calculator to test out our example scenarios, 
                               or try your own to understand how the waiting list will change 
@@ -260,14 +265,14 @@ server <- function(input, output, session) {
         
         mutate(outflow_pred_seasonal = outflow_pred_seasonal - jr_dr_cancellations - consultant_cancellations) %>%
         
-        mutate(outflow_pred = predict(lm(outflow_pred_seasonal ~ month_no, data = data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
+        mutate(outflow_pred = if_else(month_no > 0, predict(lm(outflow_pred_seasonal ~ month_no, data = data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
                                          )
-                                      )
+                                      ), NA_real_)
                ) %>% 
         
-        mutate(referrals_pred = predict(lm(referrals_pred_seasonal ~ month_no, data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
+        mutate(referrals_pred = if_else(month_no > 0, predict(lm(referrals_pred_seasonal ~ month_no, data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
                                           )
-                                        )
+                                        ), NA_real_)
         ) %>% 
         
         # get new waiting list number
@@ -306,9 +311,10 @@ server <- function(input, output, session) {
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
                      , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                     , date_labels = "%b-%y") +
-        scale_y_continuous(label = comma) +
-        theme_minimal() +
+                     , date_labels = "%b-%y"
+                     , expand = c(0, 0)) +
+        scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
+        theme_classic() +
         geom_line(aes(y = referrals_trend, color = "Referrals linear trend",
                       group=1,
                       text = paste(
@@ -325,13 +331,13 @@ server <- function(input, output, session) {
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = outflow_pred, color = "Completed pathways linear trend",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Completed pathways linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected completed pathways linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals",
                       group=1,
@@ -346,13 +352,21 @@ server <- function(input, output, session) {
                         "<br>Projected completed pathways:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize, alpha = 0.8) +
         xlab("") +
-        ylab("Number of pathways") +
+        ylab("Number of pathways (millions)") +
         # ggtitle("New referrals and completed pathways") +
         scale_color_manual(values = colors) +
         labs(color = "") +
-        theme(text = element_text(size = textsize, family = "LTUnivers 330 BasicLight"), legend.position = "top") +
+        theme(text = element_text(size = textsize, family = "LTUnivers 330 BasicLight")
+              , legend.position = "top"
+              , axis.line = element_line(colour = axis_colour)
+              , axis.ticks.x = element_line(color = axis_colour)
+              , axis.ticks.y = element_blank()
+              , panel.grid.major.x = element_blank()
+              , panel.grid.major.y = element_line(color = grid_colour)
+              ) +
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
+        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
+        annotate("rect", xmin = ymd("2023-8-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
 
       final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
         add_annotations(
@@ -374,7 +388,17 @@ server <- function(input, output, session) {
             yref = "y",
             textangle = 270,
             font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
-            )
+            ) %>%
+        add_annotations(
+          text = "Projections",
+          x = as.numeric(ymd("2023-07-15")),
+          y = 500000,
+          showarrow = FALSE,
+          xref = "x",
+          yref = "y",
+          textangle = 270,
+          font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
+        )
       
       final_plot[['x']][['layout']][['shapes']] <- c()
       
@@ -395,10 +419,18 @@ server <- function(input, output, session) {
                                   
                                   x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                   
-                                  y0 = 0, y1 = 1, yref = "paper")),
+                                  y0 = 0, y1 = 1, yref = "paper"),
+                             
+                             list(type = "rect",
+                                  
+                                  fillcolor = "#F2B4AC", line = list(color = "#F2B4AC"), opacity = 0.1,
+                                  
+                                  x0 = as.numeric(ymd("2023-08-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
+                                  
+                                  y0 = 0, y1 = 1, yref = "paper")
+                             ),
                            
-                           list(x = as.numeric(ymd("2024-11-15")), y = 700000, text = "Deadline for next\n general election"),
-                           
+
                            xaxis = list(tickangle = 315),
                            
                            legend = list(x = ymd("2018-01-01"), y = 2500000, orientation = 'h')
@@ -421,23 +453,31 @@ server <- function(input, output, session) {
       geom_col(aes(y = waiting_list_pred_seasonal, fill = "Projected waiting list",
                    text = paste(
                      format(month_year, "%B %Y"), 
-                     "<br>Projected waiting list:", format(round(as.numeric(waiting_list_pred_seasonal), 1), nsmall=1, big.mark=",")))) + # plot this first so latest date doesn't get overwritten
+                     "<br>Projected waiting list:", format(round(as.numeric(waiting_list_pred_seasonal), 0), nsmall=0, big.mark=",")))) + # plot this first so latest date doesn't get overwritten
       geom_col(aes(y = waiting_list, fill = "Waiting list",
                    text = paste(
                      format(month_year, "%B %Y"), 
-                     "<br>Waiting list:", format(round(as.numeric(waiting_list), 1), nsmall=1, big.mark=","))))  +
+                     "<br>Waiting list:", format(round(as.numeric(waiting_list), 0), nsmall=0, big.mark=","))))  +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
                    , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
-                   , date_labels = "%b-%y") +
-      scale_y_continuous(label = comma) +
-      theme_minimal() +
+                   , date_labels = "%b-%y"
+                   , expand = c(0,0)) +
+      scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
+      theme_classic() +
       xlab("") +
-      ylab("Waiting list size") +
+      ylab("Waiting list size (millions)") +
       # ggtitle("Waiting list") +
       scale_fill_manual(values = colors) +
       labs(fill = "") +
-      theme(text = element_text(size = textsize, family = "LTUnivers 330 BasicLight"), legend.position = "top") +
+      theme(text = element_text(size = textsize, family = "LTUnivers 330 BasicLight")
+            , legend.position = "top"
+            , axis.line = element_line(colour = axis_colour)
+            , axis.ticks.x = element_line(color = axis_colour)
+            , axis.ticks.y = element_blank()
+            , panel.grid.major.x = element_blank()
+            , panel.grid.major.y = element_line(color = grid_colour)
+            ) +
       annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 

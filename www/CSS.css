@@ -2,3 +2,8 @@
   font-family: 'LTUnivers 330 BasicLight';
   src: url('Linotype - LTUnivers 330 BasicLight.ttf') format('truetype');
 }
+
+@font-face {
+  font-family: 'Linotype Univers 530 Medium';
+  src: url('Linotype - Linotype Univers 530 Medium.ttf') format('truetype');
+}
