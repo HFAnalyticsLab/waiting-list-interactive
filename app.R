@@ -367,37 +367,45 @@ server <- function(input, output, session) {
         annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
         annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
         annotate("rect", xmin = ymd("2023-8-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
+      
+      # get max y for plotting annotations
+      max_y <- predictions() %>% 
+        select(referrals_pred_seasonal, outflow_pred_seasonal) %>% 
+        unlist() %>% 
+        max(na.rm = T)
 
       final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
         add_annotations(
             text = "COVID-19",
-            x = as.numeric(ymd("2020-02-01")),
-            y = 250000,
+            x = as.numeric(ymd("2020-06-15")),
+            y = max_y*.95,
             showarrow = FALSE,
             xref = "x",
             yref = "y",
-            textangle = 270,
-            font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
-           ) %>%
-         add_annotations(
-              text = "Deadline for next\n general election",
-            x = as.numeric(ymd("2024-11-15")),
-            y = 500000,
-            showarrow = FALSE,
-            xref = "x",
-            yref = "y",
-            textangle = 270,
-            font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
+            textangle = 0,
+            font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight"),
+            align = "left"
             ) %>%
         add_annotations(
-          text = "Projections",
-          x = as.numeric(ymd("2023-07-15")),
+          text = "Deadline for next\n general election",
+          x = as.numeric(ymd("2024-11-15")),
           y = 500000,
           showarrow = FALSE,
           xref = "x",
           yref = "y",
           textangle = 270,
           font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
+         ) %>%
+        add_annotations(
+          text = "Projections",
+          x = as.numeric(ymd("2023-11-15")),
+          y = max_y*.95,
+          showarrow = FALSE,
+          xref = "x",
+          yref = "y",
+          textangle = 0,
+          font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight"),
+          align = "left"
         )
       
       final_plot[['x']][['layout']][['shapes']] <- c()
@@ -482,16 +490,21 @@ server <- function(input, output, session) {
       annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
 
+    # get max y for plotting annotations
+    max_y_wl <- predictions() %>% 
+      select(waiting_list_pred_seasonal) %>% 
+      unlist() %>% 
+      max(na.rm = T)
     
     final_plot <- ggplotly(to_plot, tooltip = "text") %>% 
       add_annotations(
         text = "COVID-19",
-        x = as.numeric(ymd("2020-02-01")),
-        y = 2000000,
+        x = as.numeric(ymd("2020-06-15")),
+        y = max_y_wl*.95,
         showarrow = FALSE,
         xref = "x",
         yref = "y",
-        textangle = 270,
+        textangle = 0,
         font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
       ) %>%
       add_annotations(
