@@ -99,11 +99,11 @@ projection_annotations <- "#EE9B90"
 
 
 colors <- c("New referrals" = referrals_colour
-            , "Total completed pathways" = completed_colour
-            , "Projected referrals" = referrals_colour
-            , "Projected completed pathways" = completed_colour
             , "Referrals linear trend" = referrals_trend_colour
+            , "Projected referrals" = referrals_colour
+            , "Total completed pathways" = completed_colour
             , "Completed pathways linear trend" = completed_trend_colour
+            , "Projected completed pathways" = completed_colour
             , "Waiting list" = thf_purple
             , "Projected waiting list" = thf_lightpurple)
 
@@ -297,17 +297,17 @@ server <- function(input, output, session) {
       # Plot referrals and completeds on same graph
       to_plot <- predictions() %>% 
         ggplot(aes(x = month_year)) +
-        geom_line(aes(y = total_activity, color = "Total completed pathways",
-                      group=1,
-                      text = paste(
-                        format(month_year, "%B %Y"), 
-                        "<br>Total completed pathways:", format(round(as.numeric(total_activity), 1), nsmall=1, big.mark=","))),
-                  linewidth = linesize) +
         geom_line(aes(y = new_referrals, color = "New referrals", 
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
                         "<br>New referrals:", format(round(as.numeric(new_referrals), 1), nsmall=1, big.mark=","))),
+                  linewidth = linesize) +
+        geom_line(aes(y = total_activity, color = "Total completed pathways",
+                      group=1,
+                      text = paste(
+                        format(month_year, "%B %Y"), 
+                        "<br>Total completed pathways:", format(round(as.numeric(total_activity), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize) +
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
@@ -364,10 +364,7 @@ server <- function(input, output, session) {
               , axis.ticks.y = element_blank()
               , panel.grid.major.x = element_blank()
               , panel.grid.major.y = element_line(color = grid_colour)
-              ) +
-        annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-        annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-        annotate("rect", xmin = ymd("2023-8-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2)
+              )
       
       # get max y for plotting annotations
       max_y <- predictions() %>% 
@@ -487,8 +484,6 @@ server <- function(input, output, session) {
             , panel.grid.major.x = element_blank()
             , panel.grid.major.y = element_line(color = grid_colour)
             ) +
-      annotate("rect", xmin = ymd("2020-03-01"), xmax = ymd("2021-04-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
-      annotate("rect", xmin = ymd("2024-12-01"), xmax = ymd("2025-01-01"), ymin = 0, ymax = Inf, fill = thf_annotations, alpha = 0.2) +
       geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
 
     # get max y for plotting annotations
