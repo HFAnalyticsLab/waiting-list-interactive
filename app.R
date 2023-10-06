@@ -282,7 +282,7 @@ server <- function(input, output, session) {
         mutate(waiting_list_pred_seasonal = latest_waitlist + cumsum(lag(referrals_pred_seasonal, default = 0)) - cumsum(lag(outflow_pred_seasonal, default = 0))) %>% 
         
         # join the original dataset
-        full_join(rtt_data, by = "month_year") 
+        full_join(rtt_data, by = c("month_year", "workdays", "referrals_seasonality", "activity_seasonality")) 
     }
     
   )
@@ -563,7 +563,15 @@ server <- function(input, output, session) {
     
     filename = "data.csv",
     content = function(file) {
-      write.csv(predictions(), file, row.names = F)
+      write.csv(predictions() %>% 
+                  filter(month_year >= latest_data) %>% 
+                  select(month_year
+                         , referrals_pred_seasonal
+                         , referrals_pred
+                         , outflow_pred_seasonal
+                         , outflow_pred
+                         , waiting_list_pred_seasonal) 
+                , file, row.names = F)
     }
   )
 }
