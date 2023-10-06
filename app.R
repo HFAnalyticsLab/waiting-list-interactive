@@ -88,13 +88,14 @@ thf_pink <- "#EE8098"
 thf_purple <- "#744284"
 thf_teal <- "#2a7979"
 thf_lightpurple <- "#BAA1C2"
-thf_annotations <- "#F1F0EF"
+thf_annotations <- "#C8C3BE"
 referrals_colour <- "#7EBFDA"
 referrals_trend_colour <- "#005078"
 completed_colour <- "#EE9B90"
 completed_trend_colour <- "#dd0031"
 axis_colour <- "#999390"
 grid_colour <- "#E2DFD8"
+projection_annotations <- "#EE9B90"
 
 
 colors <- c("New referrals" = referrals_colour
@@ -129,8 +130,8 @@ ui <- fluidPage(
                   h2("Waiting list interactive calculator", style = "font-family: 'Linotype Univers 530 Medium';"),
                   
                   fluidRow(column(12, h5("Use the interactive calculator to test out our example scenarios, 
-                              or try your own to understand how the waiting list will change 
-                              between now and December 2024 as a result of changing referrals, 
+                              or try your own to understand how the waiting list could change 
+                              between now and January 2025 as a result of changing referrals, 
                               completed pathways and industrial action."))),
                   
                   fluidRow(
@@ -431,7 +432,7 @@ server <- function(input, output, session) {
                              
                              list(type = "rect",
                                   
-                                  fillcolor = "#F2B4AC", line = list(color = "#F2B4AC"), opacity = 0.1,
+                                  fillcolor = projection_annotations, line = list(color = projection_annotations), opacity = 0.1,
                                   
                                   x0 = as.numeric(ymd("2023-08-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                   
