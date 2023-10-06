@@ -100,10 +100,10 @@ projection_annotations <- "#EE9B90"
 
 colors <- c("New referrals" = referrals_colour
             , "Referrals linear trend" = referrals_trend_colour
-            , "Projected referrals" = referrals_colour
-            , "Total completed pathways" = completed_colour
+            # , "Projected referrals" = referrals_colour
+            , "Completed pathways" = completed_colour
             , "Completed pathways linear trend" = completed_trend_colour
-            , "Projected completed pathways" = completed_colour
+            # , "Projected completed pathways" = completed_colour
             , "Waiting list" = thf_purple
             , "Projected waiting list" = thf_lightpurple)
 
@@ -303,7 +303,27 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>New referrals:", format(round(as.numeric(new_referrals), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize) +
-        geom_line(aes(y = total_activity, color = "Total completed pathways",
+        scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
+        theme_classic() +
+        geom_line(aes(y = referrals_trend, color = "Referrals linear trend",
+                      group=1,
+                      text = paste(
+                        format(month_year, "%B %Y"), 
+                        "<br>Referrals linear trend:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
+                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_pred_seasonal, color = "New referrals",
+                      group=1,
+                      text = paste(
+                        format(month_year, "%B %Y"), 
+                        "<br>Projected referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                  linewidth = linesize, alpha = 0.8) +
+        geom_line(aes(y = referrals_pred, color = "Referrals linear trend",
+                      group=1,
+                      text = paste(
+                        format(month_year, "%B %Y"), 
+                        "<br>Projected referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
+                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+        geom_line(aes(y = total_activity, color = "Completed pathways",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
@@ -314,44 +334,24 @@ server <- function(input, output, session) {
                      , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
                      , date_labels = "%b-%y"
                      , expand = c(0, 0)) +
-        scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
-        theme_classic() +
-        geom_line(aes(y = referrals_trend, color = "Referrals linear trend",
-                      group=1,
-                      text = paste(
-                        format(month_year, "%B %Y"), 
-                        "<br>Referrals linear trend:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
-                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = activity_trend, color = "Completed pathways linear trend",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
                         "<br>Completed pathways linear trend:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = referrals_pred, color = "Referrals linear trend",
+        geom_line(aes(y = outflow_pred_seasonal, color = "Completed pathways",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Projected referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
-                  linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
+                        "<br>Projected completed pathways:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                  linewidth = linesize, alpha = 0.8) + 
         geom_line(aes(y = outflow_pred, color = "Completed pathways linear trend",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
                         "<br>Projected completed pathways linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = referrals_pred_seasonal, color = "Projected referrals",
-                      group=1,
-                      text = paste(
-                        format(month_year, "%B %Y"), 
-                        "<br>Projected referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
-                  linewidth = linesize, alpha = 0.8) +
-        geom_line(aes(y = outflow_pred_seasonal, color = "Projected completed pathways",
-                      group=1,
-                      text = paste(
-                        format(month_year, "%B %Y"), 
-                        "<br>Projected completed pathways:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
-                  linewidth = linesize, alpha = 0.8) +
         xlab("") +
         ylab("Number of pathways (millions)") +
         # ggtitle("New referrals and completed pathways") +
@@ -551,7 +551,7 @@ server <- function(input, output, session) {
                          
                          xaxis = list(tickangle = 315),
                          
-                         legend = list(x = ymd("2018-01-01"), y = 2500000, orientation = 'h')
+                         legend = list(x = ymd("2018-01-01"), y = 2500000, orientation = 'h', traceorder = 'reversed')
                          
                          )
     
