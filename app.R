@@ -23,10 +23,10 @@ latest_data <- ymd("2023-07-01")
 
 latest_workdays <- rtt_data[rtt_data$month_year == latest_data,]$workdays
 latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend 
-latest_outflow <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend
+latest_completed <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend
 latest_waitlist <- rtt_data[rtt_data$month_year == latest_data,]$waiting_list
 latest_referrals_actual <- rtt_data[rtt_data$month_year == latest_data,]$new_referrals
-latest_outflow_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
+latest_completed_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
 waiting_list_at_pledge <- rtt_data[rtt_data$month_year == "2023-01-01",]$waiting_list
 
 ######## time dataframe ######
@@ -65,7 +65,7 @@ consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_complete
 ###### choices dataframe #####
 
 choice_df <- data.frame("referrals_change" = c(5, 5, 5),
-                        "outflow_change" = c(7.8, 7.8, 16.9),
+                        "completed_change" = c(7.8, 7.8, 16.9),
                         "jr_drs" = c(17, 2, 2),
                         "consultant" = c(17, 2, 2),
                         "intensity" = c(90, 90, 90))
@@ -150,7 +150,7 @@ ui <- fluidPage(
                                         value = 5
                                        ),
                            # number to choose completed pathways increases
-                           numericInput("outflow_change", 
+                           numericInput("completed_change", 
                                         "Completed pathways % change per year", 
                                         min = -20,
                                         max = 20, 
@@ -190,7 +190,7 @@ ui <- fluidPage(
                   
                   hr(),
                   
-                  # plot referrals and outflow
+                  # plot referrals and completed
                   plotly::plotlyOutput("referrals_plot"),
                   
                   # plot waiting list
@@ -211,7 +211,7 @@ ui <- fluidPage(
 ##### Server logic #####
 
 # below are some input values for testing outside app -- should comment out otherwise
-# input <- data.frame(seasonality = "seasonal", jr_drs = 7, consultant = 5, referrals_change = 5, outflow_change = 5, intensity = 85)
+# input <- data.frame(seasonality = "seasonal", jr_drs = 7, consultant = 5, referrals_change = 5, completed_change = 5, intensity = 85)
 
 server <- function(input, output, session) {
   
@@ -244,12 +244,12 @@ server <- function(input, output, session) {
   predictions <- reactive(
     {
       time_df %>%
-        mutate(referrals_pred_seasonal = if_else(month_no == 0
+        mutate(projected_referrals = if_else(month_no == 0
                                                , latest_referrals_actual
                                                , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
-             , outflow_pred_seasonal = if_else(month_no == 0
-                                               , latest_outflow_actual
-                                               , (latest_outflow/latest_workdays) * monthlyRate(input$outflow_change)^month_no * workdays * activity_seasonality)
+             , projected_completed_pathways = if_else(month_no == 0
+                                               , latest_completed_actual
+                                               , (latest_completed/latest_workdays) * monthlyRate(input$completed_change)^month_no * workdays * activity_seasonality)
         ) %>% 
 
         
@@ -264,22 +264,22 @@ server <- function(input, output, session) {
                                                        , TRUE ~ 0)
         ) %>%
         
-        mutate(outflow_pred_seasonal = outflow_pred_seasonal - jr_dr_cancellations - consultant_cancellations) %>%
+        mutate(projected_completed_pathways = projected_completed_pathways - jr_dr_cancellations - consultant_cancellations) %>%
         
-        mutate(outflow_pred = if_else(month_no > 0, predict(lm(outflow_pred_seasonal ~ month_no, data = data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
+        mutate(projected_completed_pathways_linear = if_else(month_no > 0, predict(lm(projected_completed_pathways ~ month_no, data = data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
                                          )
                                       ), NA_real_)
                ) %>% 
         
-        mutate(referrals_pred = if_else(month_no > 0, predict(lm(referrals_pred_seasonal ~ month_no, data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
+        mutate(projected_referrals_linear = if_else(month_no > 0, predict(lm(projected_referrals ~ month_no, data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
                                           )
                                         ), NA_real_)
         ) %>% 
         
         # get new waiting list number
-        # cumulative sum of referrals (up to t-1), - outflow (at t-1), and adding to latest waiting list
+        # cumulative sum of referrals (up to t-1), - completed (at t-1), and adding to latest waiting list
         
-        mutate(waiting_list_pred_seasonal = latest_waitlist + cumsum(lag(referrals_pred_seasonal, default = 0)) - cumsum(lag(outflow_pred_seasonal, default = 0))) %>% 
+        mutate(projected_waiting_list = latest_waitlist + cumsum(lag(projected_referrals, default = 0)) - cumsum(lag(projected_completed_pathways, default = 0))) %>% 
         
         # join the original dataset
         full_join(rtt_data, by = c("month_year", "workdays", "referrals_seasonality", "activity_seasonality")) 
@@ -311,17 +311,17 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>Referrals linear trend:", format(round(as.numeric(referrals_trend), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = referrals_pred_seasonal, color = "New referrals",
+        geom_line(aes(y = projected_referrals, color = "New referrals",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Projected referrals:", format(round(as.numeric(referrals_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected referrals:", format(round(as.numeric(projected_referrals), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize, alpha = 0.8) +
-        geom_line(aes(y = referrals_pred, color = "Referrals linear trend",
+        geom_line(aes(y = projected_referrals_linear, color = "Referrals linear trend",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Projected referrals linear trend:", format(round(as.numeric(referrals_pred), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected referrals linear trend:", format(round(as.numeric(projected_referrals_linear), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         geom_line(aes(y = total_activity, color = "Completed pathways",
                       group=1,
@@ -340,17 +340,17 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>Completed pathways linear trend:", format(round(as.numeric(activity_trend), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
-        geom_line(aes(y = outflow_pred_seasonal, color = "Completed pathways",
+        geom_line(aes(y = projected_completed_pathways, color = "Completed pathways",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Projected completed pathways:", format(round(as.numeric(outflow_pred_seasonal), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected completed pathways:", format(round(as.numeric(projected_completed_pathways), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize, alpha = 0.8) + 
-        geom_line(aes(y = outflow_pred, color = "Completed pathways linear trend",
+        geom_line(aes(y = projected_completed_pathways_linear, color = "Completed pathways linear trend",
                       group=1,
                       text = paste(
                         format(month_year, "%B %Y"), 
-                        "<br>Projected completed pathways linear trend:", format(round(as.numeric(outflow_pred), 1), nsmall=1, big.mark=","))),
+                        "<br>Projected completed pathways linear trend:", format(round(as.numeric(projected_completed_pathways_linear), 1), nsmall=1, big.mark=","))),
                   linetype = 3, linewidth = trendlinesize, alpha = 0.8) +
         xlab("") +
         ylab("Number of pathways (millions)") +
@@ -368,7 +368,7 @@ server <- function(input, output, session) {
       
       # get max y for plotting annotations
       max_y <- predictions() %>% 
-        select(referrals_pred_seasonal, outflow_pred_seasonal) %>% 
+        select(projected_referrals, projected_completed_pathways) %>% 
         unlist() %>% 
         max(na.rm = T)
 
@@ -456,10 +456,10 @@ server <- function(input, output, session) {
     
     to_plot <- predictions() %>%
       ggplot(aes(x = month_year)) +
-      geom_col(aes(y = waiting_list_pred_seasonal, fill = "Projected waiting list",
+      geom_col(aes(y = projected_waiting_list, fill = "Projected waiting list",
                    text = paste(
                      format(month_year, "%B %Y"), 
-                     "<br>Projected waiting list:", format(round(as.numeric(waiting_list_pred_seasonal), 0), nsmall=0, big.mark=",")))) + # plot this first so latest date doesn't get overwritten
+                     "<br>Projected waiting list:", format(round(as.numeric(projected_waiting_list), 0), nsmall=0, big.mark=",")))) + # plot this first so latest date doesn't get overwritten
       geom_col(aes(y = waiting_list, fill = "Waiting list",
                    text = paste(
                      format(month_year, "%B %Y"), 
@@ -488,7 +488,7 @@ server <- function(input, output, session) {
 
     # get max y for plotting annotations
     max_y_wl <- predictions() %>% 
-      select(waiting_list_pred_seasonal) %>% 
+      select(projected_waiting_list) %>% 
       unlist() %>% 
       max(na.rm = T)
     
@@ -566,11 +566,11 @@ server <- function(input, output, session) {
       write.csv(predictions() %>% 
                   filter(month_year >= latest_data) %>% 
                   select(month_year
-                         , referrals_pred_seasonal
-                         , referrals_pred
-                         , outflow_pred_seasonal
-                         , outflow_pred
-                         , waiting_list_pred_seasonal) 
+                         , projected_referrals
+                         , projected_referrals_linear
+                         , projected_completed_pathways
+                         , projected_completed_pathways_linear
+                         , projected_waiting_list)
                 , file, row.names = F)
     }
   )
