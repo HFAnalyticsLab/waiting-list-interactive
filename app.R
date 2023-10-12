@@ -19,7 +19,7 @@ workdays_table <- readRDS("data/workdays_table.RDS")
 ##### Calculations outside shiny ####
 
 ####### point values of latest available data for plotting ######
-latest_data <- ymd("2023-07-01")
+latest_data <- ymd("2023-08-01")
 
 latest_workdays <- rtt_data[rtt_data$month_year == latest_data,]$workdays
 latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend 
@@ -41,25 +41,27 @@ time_df <- time_df %>%
   left_join(seasonality, by = "month")
 
 ###### fixed assumptions ######
-jr_dr_perc_consultant_led <- 0.73
-jr_dr_daily_cancel <- 22200
-consultant_daily_cancel <- 22900 
+jr_dr_daily_cancel <- 26100
+joint_daily_cancel <- 39300 
 perc_result_completed_pathway <- 0.2
-jr_dr_strike_days_per_month <- 3
-consultant_strike_days_per_month <- 2
+jr_dr_strike_days_per_month <- 2
+joint_strike_days_per_month <- 2
 
-# for junior doctors, not all appointments are consultant led so need to account for this and add this to procedures, which are all consultant led
+# create start values for how many pathways would not be complete as a result of a strike
 jr_dr_start_val <- jr_dr_daily_cancel * perc_result_completed_pathway * jr_dr_strike_days_per_month
-consultant_start_val <- consultant_daily_cancel * perc_result_completed_pathway * consultant_strike_days_per_month
+joint_start_val <- joint_daily_cancel * perc_result_completed_pathway * joint_strike_days_per_month
 
-# include actual cancellations in july and august to predicted
-jr_dr_aug23_actual_cancellations_appt <- 53437
-jr_dr_aug23_actual_cancellations_proc <- 7763
+# include actual cancellation data in september and october 
+jr_dr_sep23_actual_cancellations <- 52281
+jr_dr_oct23_actual_cancellations <- 0
 
-jr_dr_aug23 <- ((jr_dr_aug23_actual_cancellations_appt * jr_dr_perc_consultant_led) + jr_dr_aug23_actual_cancellations_proc) * perc_result_completed_pathway
+jr_dr_sep23 <- jr_dr_sep23_actual_cancellations * perc_result_completed_pathway
 
-consultant_aug23_actual_cancellations <- 45827
-consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_completed_pathway
+joint_sep23_actual_cancellations <- 77632
+joint_sep23 <- joint_sep23_actual_cancellations * perc_result_completed_pathway
+
+joint_oct23_actual_cancellations <- 118026
+joint_oct23 <- joint_oct23_actual_cancellations * perc_result_completed_pathway
 
 
 ###### choices dataframe #####
@@ -67,7 +69,7 @@ consultant_aug23 <- consultant_aug23_actual_cancellations * perc_result_complete
 choice_df <- data.frame("referrals_change" = c(5, 5, 5),
                         "completed_change" = c(7.8, 7.8, 16.9),
                         "jr_drs" = c(17, 2, 2),
-                        "consultant" = c(17, 2, 2),
+                        "joint" = c(17, 2, 2),
                         "intensity" = c(90, 90, 90))
 
 
@@ -166,9 +168,9 @@ ui <- fluidPage(
                                         max = 17, 
                                         value = 17 
                                         ),
-                           # number of consultant strike days to include
-                           numericInput("consultant", 
-                                        "Number of months of consultant strikes to include", 
+                           # number of joint strike days to include
+                           numericInput("joint", 
+                                        "Number of months of joint strikes to include", 
                                         min = 0,
                                         max = 17, 
                                         value = 17 
@@ -211,7 +213,7 @@ ui <- fluidPage(
 ##### Server logic #####
 
 # below are some input values for testing outside app -- should comment out otherwise
-# input <- data.frame(seasonality = "seasonal", jr_drs = 7, consultant = 5, referrals_change = 5, completed_change = 5, intensity = 85)
+# input <- data.frame(seasonality = "seasonal", jr_drs = 7, joint = 5, referrals_change = 5, completed_change = 5, intensity = 85)
 
 server <- function(input, output, session) {
   
@@ -256,15 +258,15 @@ server <- function(input, output, session) {
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
-        mutate(jr_dr_cancellations = case_when(input$jr_drs + 2 > month_no & month_no >= 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 1)
-                                               , month_no == 1 ~ jr_dr_aug23
+        mutate(jr_dr_cancellations = case_when(input$jr_drs + 2 > month_no & month_no >= 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 2)
+                                               , month_no == 1 ~ jr_dr_sep23
                                                , TRUE ~ 0)
-               , consultant_cancellations =  case_when(input$consultant + 2 > month_no & month_no >= 2 ~ consultant_start_val * (input$intensity/100)^(month_no - 1)
-                                                       , month_no == 1 ~ consultant_aug23                                                   
+               , joint_cancellations =  case_when(input$joint + 2 > month_no & month_no >= 2 ~ joint_start_val * (input$intensity/100)^(month_no - 2)
+                                                       , month_no == 1 ~ joint_sep23                                                   
                                                        , TRUE ~ 0)
         ) %>%
         
-        mutate(projected_completed_pathways = projected_completed_pathways - jr_dr_cancellations - consultant_cancellations) %>%
+        mutate(projected_completed_pathways = projected_completed_pathways - jr_dr_cancellations - joint_cancellations) %>%
         
         mutate(projected_completed_pathways_linear = if_else(month_no > 0, predict(lm(projected_completed_pathways ~ month_no, data = data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
                                          )

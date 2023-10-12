@@ -28,7 +28,7 @@ rtt_data_raw <- rtt_data_raw %>%
   clean_names() %>% 
   rename(fiscal_year = x1, month_year = x2)
 
-latest_data <- ymd("2023-07-01")
+latest_data <- ymd("2023-08-01")
 
 ##### Clean data #####
 
@@ -86,8 +86,8 @@ seasonality <- rtt_data %>%
   filter(month_year < ymd("2019-04-01")) %>% 
   # group by year to get a yearly average
   group_by(fin_year) %>% 
-  mutate(avg_yearly_referral_day_rate = mean(new_referrals_day_rate)
-         , avg_yearly_activity_day_rate = mean(total_activity_day_rate)) %>% 
+  mutate(avg_yearly_referral_day_rate = sum(new_referrals)/sum(workdays)
+         , avg_yearly_activity_day_rate = sum(total_activity)/sum(workdays)) %>% 
   ungroup() %>% 
   # get proportional difference between month and year
   mutate(referrals_diff = new_referrals_day_rate/avg_yearly_referral_day_rate
