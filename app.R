@@ -66,11 +66,11 @@ joint_oct23 <- joint_oct23_actual_cancellations * perc_result_completed_pathway
 
 ###### choices dataframe #####
 
-choice_df <- data.frame("referrals_change" = c(5, 5, 5),
-                        "completed_change" = c(7.8, 7.8, 16.9),
-                        "jr_drs" = c(17, 2, 2),
-                        "joint" = c(17, 2, 2),
-                        "intensity" = c(90, 90, 90))
+choice_df <- data.frame("referrals_change" = c(5, 5, 5, 5),
+                        "completed_change" = c(7.8, 7.8, 5.2, 10.4),
+                        "jr_drs" = c(0, 0, 0, 0),
+                        "joint" = c(0, 17, 17, 0),
+                        "intensity" = c(95, 95, 95, 95))
 
 
 ####### function for monthly rate  #######
@@ -162,15 +162,15 @@ ui <- fluidPage(
                     column(4, 
                            h4("Change the number of strikes to add into the model"),
                            # number of junior doctor strike days to include
-                           numericInput("jr_drs", 
-                                        "Number of months of junior doctor strikes to include", 
+                           # number of joint strike days to include
+                           numericInput("joint", 
+                                        "Number of months of joint consultant and junior doctor strikes to include", 
                                         min = 0,
                                         max = 17, 
                                         value = 17 
-                                        ),
-                           # number of joint strike days to include
-                           numericInput("joint", 
-                                        "Number of months of joint strikes to include", 
+                           ),
+                           numericInput("jr_drs", 
+                                        "Number of months of additional junior doctor strikes to include", 
                                         min = 0,
                                         max = 17, 
                                         value = 17 
@@ -180,11 +180,11 @@ ui <- fluidPage(
                                         "Strike intensity %", 
                                         min = 0,
                                         max = 100, 
-                                        value = 90
+                                        value = 95
                                         ),
                            # help text on strikes
                            helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
-                                    Strike intensity informs the proportion of cancellations from the previous month seen in the current month "),
+                                    Strike intensity is the proportion of cancellations from the previous month seen in the current month."),
                            
                            )
                         ),
@@ -219,13 +219,14 @@ server <- function(input, output, session) {
   
   output$preset_server <- renderUI({
     
-    strikes_cont <- "Scenario 1: Current growth rates, and strikes continue every month into January 2025"
-    no_strikes <- "Scenario 2: Current growth rates, with no further strike action after October 2023"
-    reach_130 <- "Scenario 3: Goal of reaching 30% more activity by 24/25 is reached, with no further strike action after October 2023" 
+    same_activity_strikes <- "Scenario 1: Current growth rates, with no further strike action after October 2023"
+    same_activity_no_strikes <- "Scenario 2: Current growth rates, and joint strikes continue every month into January 2025"
+    less_activity_strikes <- "Scenario 3: Completed pathways activity slows, and joint strikes continue every month into January 2025" 
+    more_activity_no_strikes <- "Scenario 4: Completed pathways activity increases, with no further strike action after October 2023"
     
-    choice_values <- 1:3
+    choice_values <- 1:4
     
-    names(choice_values) <- c(strikes_cont, no_strikes, reach_130)
+    names(choice_values) <- c(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
     
     radioButtons("preset", "Choose an example scenario", choices = choice_values)
   })
