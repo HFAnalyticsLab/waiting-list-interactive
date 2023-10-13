@@ -45,7 +45,7 @@ jr_dr_daily_cancel <- 26100
 joint_daily_cancel <- 39300 
 perc_result_completed_pathway <- 0.2
 jr_dr_strike_days_per_month <- 2
-joint_strike_days_per_month <- 2
+joint_strike_days_per_month <- 3
 
 # create start values for how many pathways would not be complete as a result of a strike
 jr_dr_start_val <- jr_dr_daily_cancel * perc_result_completed_pathway * jr_dr_strike_days_per_month
@@ -204,7 +204,7 @@ ui <- fluidPage(
   
                   fluidRow(
                     column(4, img(src= "THF-copyright.png", align = "left", height = "50%", width = "50%")),
-                    column(8, HTML("Source: <a href=https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/>NHS England Consultant-led Referral to Treatment Waiting Times Data</a>. Data to July 2023."))
+                    column(8, HTML("Source: <a href=https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/>NHS England Consultant-led Referral to Treatment Waiting Times Data</a>. <br> Data to August 2023, per 12 October 2023 release."), align = "right")
                     )
                            
 
@@ -334,7 +334,7 @@ server <- function(input, output, session) {
                   linewidth = linesize) +
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
-                     , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                     , limits = c(ymd("2016-04-01"), ymd("2025-01-15"))
                      , date_labels = "%b-%y"
                      , expand = c(0, 0)) +
         geom_line(aes(y = activity_trend, color = "Completed pathways linear trend",
@@ -389,14 +389,19 @@ server <- function(input, output, session) {
             ) %>%
         add_annotations(
           text = "Deadline for next\n general election",
-          x = as.numeric(ymd("2024-11-15")),
-          y = 500000,
-          showarrow = FALSE,
+          x = as.numeric(ymd("2025-01-01")),
+          y = max_y,
+          showarrow = TRUE,
           xref = "x",
           yref = "y",
-          textangle = 270,
-          font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
-         ) %>%
+          ax = 0,
+          ay = -20,
+          arrowsize = 0.5,
+          arrowcolor = "#676361",
+          textangle = 0,
+          xanchor = "right",
+          font = list(color = "#676361", size = textsize-1, family = "LTUnivers 330 BasicLight")
+        ) %>%
         add_annotations(
           text = "Projections",
           x = as.numeric(ymd("2023-11-15")),
@@ -469,7 +474,7 @@ server <- function(input, output, session) {
                      "<br>Waiting list:", format(round(as.numeric(waiting_list), 0), nsmall=0, big.mark=","))))  +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
-                   , limits = c(ymd("2016-04-01"), ymd("2025-01-01"))
+                   , limits = c(ymd("2016-04-01"), ymd("2025-01-15"))
                    , date_labels = "%b-%y"
                    , expand = c(0,0)) +
       scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
@@ -487,7 +492,7 @@ server <- function(input, output, session) {
             , panel.grid.major.x = element_blank()
             , panel.grid.major.y = element_line(color = grid_colour)
             ) +
-      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-01"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
+      geom_segment(aes(x = ymd("2023-01-01"), xend = ymd("2025-01-15"), y = waiting_list_at_pledge, yend = waiting_list_at_pledge), linetype = 3, color = "white", alpha = 0.8) 
 
     # get max y for plotting annotations
     max_y_wl <- predictions() %>% 
@@ -508,13 +513,18 @@ server <- function(input, output, session) {
       ) %>%
       add_annotations(
         text = "Deadline for next\n general election",
-        x = as.numeric(ymd("2024-11-15")),
-        y = 2000000,
-        showarrow = FALSE,
+        x = as.numeric(ymd("2025-01-01")),
+        y = max_y_wl,
+        showarrow = TRUE,
         xref = "x",
         yref = "y",
-        textangle = 270,
-        font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight")
+        ax = 0,
+        ay = -20,
+        arrowsize = 0.5,
+        arrowcolor = "#676361",
+        textangle = 0,
+        xanchor = "right",
+        font = list(color = "#676361", size = textsize-1, family = "LTUnivers 330 BasicLight")
       ) %>%
       add_annotations(
         text = "Waiting list at pledge, ~7.2M",
@@ -526,6 +536,7 @@ server <- function(input, output, session) {
         ax = 0,
         ay = -40,
         arrowsize = 0.5,
+        xanchor = "right",
         arrowcolor = "#676361",
         textangle = 0,
         font = list(color = "#676361", size = textsize-1)
