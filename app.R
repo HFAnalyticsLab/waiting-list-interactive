@@ -424,6 +424,9 @@ server <- function(input, output, session) {
                            shapes = list(
                              list(type = "rect",
                                   
+                                  ## Moved the Covid-19 shading below the lines
+                                  layer = "below",
+                                  
                                   fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                   
                                   x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
@@ -555,6 +558,9 @@ server <- function(input, output, session) {
                          
                          shapes = list(
                            list(type = "rect",
+                                
+                                ## Moved the Covid-19 shading below the lines
+                                layer = "below",
                                 
                                 fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                 
