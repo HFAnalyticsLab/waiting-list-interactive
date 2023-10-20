@@ -192,12 +192,14 @@ ui <- fluidPage(
                   
                   hr(),
                   
+                  ## Changed the order of plots
+      
+                  # plot waiting list
+                  plotly::plotlyOutput("waiting_list_plot"),
+                  
                   # plot referrals and completed
                   plotly::plotlyOutput("referrals_plot"),
                   
-                  # plot waiting list
-                  plotly::plotlyOutput("waiting_list_plot"),
-      
                   downloadButton("download_data", "Download data"),
   
                   hr(),
