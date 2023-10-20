@@ -336,7 +336,8 @@ server <- function(input, output, session) {
                   linewidth = linesize) +
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
-                     , limits = c(ymd("2016-04-01"), ymd("2025-01-15"))
+                     ## Changed start date of chart to January 2018
+                     , limits = c(ymd("2018-01-01"), ymd("2025-01-15"))
                      , date_labels = "%b-%y"
                      , expand = c(0, 0)) +
         geom_line(aes(y = activity_trend, color = "Completed pathways linear trend",
@@ -476,7 +477,9 @@ server <- function(input, output, session) {
                      "<br>Waiting list:", format(round(as.numeric(waiting_list), 0), nsmall=0, big.mark=","))))  +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
-                   , limits = c(ymd("2016-04-01"), ymd("2025-01-15"))
+                   ## Changed start date of chart to January 2018
+                   ## NOTE: Start date defined as 2017-12-19 in order to make sure that January 2018 bar displays on chart
+                   , limits = c(ymd("2017-12-19"), ymd("2025-01-15"))
                    , date_labels = "%b-%y"
                    , expand = c(0,0)) +
       scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
