@@ -248,17 +248,22 @@ server <- function(input, output, session) {
   
   output$preset_server <- renderUI({
     
-    same_activity_strikes <- "Scenario 1: Current growth rates, with no further strike action after October 2023"
-    same_activity_no_strikes <- "Scenario 2: Current growth rates, and joint strikes continue every month into January 2025"
-    less_activity_strikes <- "Scenario 3: Completed pathways activity slows, and joint strikes continue every month into January 2025" 
-    more_activity_no_strikes <- "Scenario 4: Completed pathways activity increases, with no further strike action after October 2023"
+    ## Bolded the Scenarios to make them stand out
+    same_activity_strikes <- HTML("<b>Scenario 1:</b> Current growth rates, with no further strike action after October 2023")
+    same_activity_no_strikes <- HTML("<b>Scenario 2:</b> Current growth rates, and joint strikes continue every month into January 2025")
+    less_activity_strikes <- HTML("<b>Scenario 3:</b> Completed pathways activity slows, and joint strikes continue every month into January 2025") 
+    more_activity_no_strikes <- HTML("<b>Scenario 4:</b> Completed pathways activity increases, with no further strike action after October 2023")
     
-    choice_values <- 1:4
+    choice_values <- list(1, 2, 3, 4)
     
-    names(choice_values) <- c(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
+    choice_names <- list(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
     
-    ## Removed the label as its redundant since the column has a title
-    radioButtons("preset", label = NULL, choices = choice_values)
+    ## Removed the label (but kept a line break) as its redundant since the column has a title
+    radioButtons("preset", 
+                 width = "100%",
+                 label = "\n", 
+                 choiceNames = choice_names,
+                 choiceValues = choice_values)
   })
   
   observe({
