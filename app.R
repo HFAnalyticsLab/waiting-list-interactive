@@ -430,13 +430,15 @@ server <- function(input, output, session) {
                                   
                                   y0 = 0, y1 = 1, yref = "paper"),
                              
-                             list(type = "rect",
-                                  
-                                  fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
-                                  
-                                  x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
-                                  
-                                  y0 = 0, y1 = 1, yref = "paper"),
+                             ## Removed the General Election shaded area
+                             ## NOTE: Have done so by commenting out in case it needs to be reinstated
+                             # list(type = "rect",
+                             #      
+                             #      fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
+                             #      
+                             #      x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
+                             #      
+                             #      y0 = 0, y1 = 1, yref = "paper"),
                              
                              list(type = "rect",
                                   
@@ -558,15 +560,18 @@ server <- function(input, output, session) {
                                 
                                 x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
                                 
-                                y0 = 0, y1 = 1, yref = "paper"),
+                                y0 = 0, y1 = 1, yref = "paper")#,
                            
-                           list(type = "rect",
-                                
-                                fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
-                                
-                                x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
-                                
-                                y0 = 0, y1 = 1, yref = "paper")),
+                           ## Removed the General Election shaded area
+                           ## NOTE: Have done so by commenting out in case it needs to be reinstated
+                           # list(type = "rect",
+                           #      
+                           #      fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
+                           #      
+                           #      x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
+                           #      
+                           #      y0 = 0, y1 = 1, yref = "paper")
+                           ),
                          
                          xaxis = list(tickangle = 315),
                          
