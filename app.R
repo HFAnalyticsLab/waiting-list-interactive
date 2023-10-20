@@ -160,7 +160,17 @@ ui <- fluidPage(
                                         )
                             ),
                     column(4, 
-                           h4("Change the number of strikes to add into the model"),
+                           
+                           ## Added an actionLink that gives a popup of the helpText
+                           
+                           h4(span(style = "display: inline",
+                                   "Change the number of strikes to add into the model"),
+                              tags$sup(actionLink("helpText",
+                                      style = "display: inline; font-size: 10px",
+                                      label = NULL, 
+                                      icon = icon(name = "question",
+                                                  lib = "font-awesome")))),
+                           
                            # number of junior doctor strike days to include
                            # number of joint strike days to include
                            numericInput("joint", 
@@ -182,10 +192,14 @@ ui <- fluidPage(
                                         max = 100, 
                                         value = 95
                                         ),
-                           # help text on strikes
-                           helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
-                                    Strike intensity is the proportion of cancellations from the previous month seen in the current month."),
                            
+                           ## Removed the helpText as it is now in a popup
+                           ## NOTE: Commented out in case it needs to be reinstated
+                           
+                           # help text on strikes
+                           # helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
+                           #          Strike intensity is the proportion of cancellations from the previous month seen in the current month."),
+                           # 
                            )
                         ),
 
@@ -219,6 +233,19 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+  ## Created an observer that pops up a dialog box with the help text inside
+  
+  observeEvent(input$helpText, {
+    showModal(modalDialog(
+      title = NULL,
+      "One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
+                                    Strike intensity is the proportion of cancellations from the previous month seen in the current month.",
+      easyClose = TRUE,
+      footer = NULL,
+      size = "s"
+    ))
+  })
+  
   output$preset_server <- renderUI({
     
     same_activity_strikes <- "Scenario 1: Current growth rates, with no further strike action after October 2023"
@@ -230,7 +257,8 @@ server <- function(input, output, session) {
     
     names(choice_values) <- c(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
     
-    radioButtons("preset", "Choose an example scenario", choices = choice_values)
+    ## Removed the label as its redundant since the column has a title
+    radioButtons("preset", label = NULL, choices = choice_values)
   })
   
   observe({
