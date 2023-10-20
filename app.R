@@ -142,56 +142,65 @@ ui <- fluidPage(
                            
                            uiOutput("preset_server")),
                     
-                    column(4, 
+                    column(8, 
                            h4("Change the percent by which new referrals and completed pathways increase or decrease"),
                            # number to choose referrals increases
-                           numericInput("referrals_change", 
-                                        "Referrals % change per year", 
-                                        min = -20,
-                                        max = 20, 
-                                        value = 5
-                                       ),
+                           div(style = "display: inline-block",
+                               numericInput("referrals_change", 
+                                             "Referrals % change per year", 
+                                              min = -20,
+                                              max = 20, 
+                                              value = 5,
+                                            width = "260px"
+                                            )),
                            # number to choose completed pathways increases
-                           numericInput("completed_change", 
-                                        "Completed pathways % change per year", 
-                                        min = -20,
-                                        max = 20, 
-                                        value = 7.8
-                                        )
-                            ),
-                    column(4, 
+                           div(style = "display: inline-block",
+                               numericInput("completed_change", 
+                                            "Completed pathways % change per year", 
+                                            min = -20,
+                                            max = 20, 
+                                            value = 7.8,
+                                            width = "260px"
+                                            )),
+                             
                            
                            ## Added an actionLink that gives a popup of the helpText
                            
                            h4(span(style = "display: inline",
-                                   "Change the number of strikes to add into the model"),
+                                   "Change the number of strikes to add into the model",
                               tags$sup(actionLink("helpText",
                                       style = "display: inline; font-size: 10px",
                                       label = NULL, 
                                       icon = icon(name = "question",
-                                                  lib = "font-awesome")))),
+                                                  lib = "font-awesome"))))),
                            
                            # number of junior doctor strike days to include
                            # number of joint strike days to include
-                           numericInput("joint", 
+                           div(style = "display: inline-block",
+                               numericInput("joint", 
                                         "Number of months of joint consultant and junior doctor strikes to include", 
                                         min = 0,
                                         max = 17, 
-                                        value = 17 
-                           ),
-                           numericInput("jr_drs", 
+                                        value = 17,
+                                        width = "220px"
+                           )),
+                           div(style = "display: inline-block",
+                               numericInput("jr_drs", 
                                         "Number of months of additional junior doctor strikes to include", 
                                         min = 0,
                                         max = 17, 
-                                        value = 17 
-                                        ),
+                                        value = 17,
+                                        width = "220px"
+                                        )),
                            # strike intensity
-                           numericInput("intensity", 
+                           div(style = "display: inline-block",
+                               numericInput("intensity", 
                                         "Strike intensity %", 
                                         min = 0,
                                         max = 100, 
-                                        value = 95
-                                        ),
+                                        value = 95,
+                                        width = "220px"
+                                        )),
                            
                            ## Removed the helpText as it is now in a popup
                            ## NOTE: Commented out in case it needs to be reinstated
@@ -261,7 +270,7 @@ server <- function(input, output, session) {
     ## Removed the label (but kept a line break) as its redundant since the column has a title
     radioButtons("preset", 
                  width = "100%",
-                 label = "\n", 
+                 label = NULL, 
                  choiceNames = choice_names,
                  choiceValues = choice_values)
   })
