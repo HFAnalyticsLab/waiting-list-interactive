@@ -138,54 +138,87 @@ ui <- fluidPage(
                   
                   fluidRow(
                     column(4,
-                           h4("Choose from an example scenario"),
+                           ## Added a red box border
+                           style = "left: 10px; margin-top: 40px; right: 5px; border-radius: 10px; border-color: #dd0031; border-width: 2px; border-style: solid;",
+                           ## Made the box header bold
+                           h4(style = "font-weight: 600", 
+                              "Choose from an example scenario"),
                            
                            uiOutput("preset_server")),
                     
-                    column(4, 
-                           h4("Change the percent by which new referrals and completed pathways increase or decrease"),
+                    column(8,
+                           ## Added a blue box border
+                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-bottom: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #53a9cd; border-width: 2px; border-style: solid;",
+                           ## Made the box header bold
+                           h4(style = "font-weight: 600;",
+                              "Change the percent by which new referrals and completed pathways increase or decrease"),
                            # number to choose referrals increases
-                           numericInput("referrals_change", 
-                                        "Referrals % change per year", 
-                                        min = -20,
-                                        max = 20, 
-                                        value = 5
-                                       ),
+                           div(style = "display: inline-block;",
+                               numericInput("referrals_change", 
+                                             "Referrals % change per year", 
+                                              min = -20,
+                                              max = 20, 
+                                              value = 5,
+                                            width = "260px"
+                                            )),
                            # number to choose completed pathways increases
-                           numericInput("completed_change", 
-                                        "Completed pathways % change per year", 
-                                        min = -20,
-                                        max = 20, 
-                                        value = 7.8
-                                        )
-                            ),
-                    column(4, 
-                           h4("Change the number of strikes to add into the model"),
-                           # number of junior doctor strike days to include
-                           # number of joint strike days to include
-                           numericInput("joint", 
-                                        "Number of months of joint consultant and junior doctor strikes to include", 
-                                        min = 0,
-                                        max = 17, 
-                                        value = 17 
-                           ),
-                           numericInput("jr_drs", 
-                                        "Number of months of additional junior doctor strikes to include", 
-                                        min = 0,
-                                        max = 17, 
-                                        value = 17 
-                                        ),
-                           # strike intensity
-                           numericInput("intensity", 
-                                        "Strike intensity %", 
-                                        min = 0,
-                                        max = 100, 
-                                        value = 95
-                                        ),
-                           # help text on strikes
-                           helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
-                                    Strike intensity is the proportion of cancellations from the previous month seen in the current month."),
+                           div(style = "display: inline-block;",
+                               numericInput("completed_change", 
+                                            "Completed pathways % change per year", 
+                                            min = -20,
+                                            max = 20, 
+                                            value = 7.8,
+                                            width = "260px"
+                                            ))),
+                             
+                           ## Added a blue box border
+                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-top: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #53a9cd; border-width: 2px; border-style: solid;",
+                               ## Made the box header bold
+                               h4(style = "font-weight: 600;",
+                                  span(style = "display: inline",
+                                       "Change the number of strikes to add into the model",
+                                        ## Added an actionLink that gives a popup of the helpText
+                                        tags$sup(actionLink("helpText",
+                                                            style = "display: inline; font-size: 10px",
+                                                            label = NULL, 
+                                                            icon = icon(name = "question",
+                                                            lib = "font-awesome"))))),
                            
+                               # number of junior doctor strike days to include
+                               # number of joint strike days to include
+                               div(style = "display: inline-block;",
+                                   numericInput("joint", 
+                                            "Number of months of joint consultant and junior doctor strikes to include", 
+                                            min = 0,
+                                            max = 17, 
+                                            value = 17,
+                                            width = "220px"
+                               )),
+                               div(style = "display: inline-block;",
+                                   numericInput("jr_drs", 
+                                            "Number of months of additional junior doctor strikes to include", 
+                                            min = 0,
+                                            max = 17, 
+                                            value = 17,
+                                            width = "220px"
+                                            )),
+                               # strike intensity
+                               div(style = "display: inline-block;",
+                                   numericInput("intensity", 
+                                            "Strike intensity %", 
+                                            min = 0,
+                                            max = 100, 
+                                            value = 95,
+                                            width = "220px"
+                                            ))),
+                           
+                           ## Removed the helpText as it is now in a popup
+                           ## NOTE: Commented out in case it needs to be reinstated
+                           
+                           # help text on strikes
+                           # helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
+                           #          Strike intensity is the proportion of cancellations from the previous month seen in the current month."),
+                           # 
                            )
                         ),
 
@@ -219,18 +252,37 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+  ## Created an observer that pops up a dialog box with the help text inside
+  
+  observeEvent(input$helpText, {
+    showModal(modalDialog(
+      title = NULL,
+      "One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
+                                    Strike intensity is the proportion of cancellations from the previous month seen in the current month.",
+      easyClose = TRUE,
+      footer = NULL,
+      size = "s"
+    ))
+  })
+  
   output$preset_server <- renderUI({
     
-    same_activity_strikes <- "Scenario 1: Current growth rates, with no further strike action after October 2023"
-    same_activity_no_strikes <- "Scenario 2: Current growth rates, and joint strikes continue every month into January 2025"
-    less_activity_strikes <- "Scenario 3: Completed pathways activity slows, and joint strikes continue every month into January 2025" 
-    more_activity_no_strikes <- "Scenario 4: Completed pathways activity increases, with no further strike action after October 2023"
+    ## Bolded the Scenarios to make them stand out
+    same_activity_strikes <- HTML("<b>Scenario 1:</b> Current growth rates, with no further strike action after October 2023")
+    same_activity_no_strikes <- HTML("<b>Scenario 2:</b> Current growth rates, and joint strikes continue every month into January 2025")
+    less_activity_strikes <- HTML("<b>Scenario 3:</b> Completed pathways activity slows, and joint strikes continue every month into January 2025") 
+    more_activity_no_strikes <- HTML("<b>Scenario 4:</b> Completed pathways activity increases, with no further strike action after October 2023")
     
-    choice_values <- 1:4
+    choice_values <- list(1, 2, 3, 4)
     
-    names(choice_values) <- c(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
+    choice_names <- list(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
     
-    radioButtons("preset", "Choose an example scenario", choices = choice_values)
+    ## Removed the label (but kept a line break) as its redundant since the column has a title
+    radioButtons("preset", 
+                 width = "100%",
+                 label = NULL, 
+                 choiceNames = choice_names,
+                 choiceValues = choice_values)
   })
   
   observe({
