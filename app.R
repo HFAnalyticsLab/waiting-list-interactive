@@ -138,14 +138,22 @@ ui <- fluidPage(
                   
                   fluidRow(
                     column(4,
-                           h4("Choose from an example scenario"),
+                           ## Added a red box border
+                           style = "left: 10px; margin-top: 40px; right: 5px; border-radius: 10px; border-color: #dd0031; border-width: 2px; border-style: solid;",
+                           ## Made the box header bold
+                           h4(style = "font-weight: 600", 
+                              "Choose from an example scenario"),
                            
                            uiOutput("preset_server")),
                     
-                    column(8, 
-                           h4("Change the percent by which new referrals and completed pathways increase or decrease"),
+                    column(8,
+                           ## Added a blue box border
+                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-bottom: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #53a9cd; border-width: 2px; border-style: solid;",
+                           ## Made the box header bold
+                           h4(style = "font-weight: 600;",
+                              "Change the percent by which new referrals and completed pathways increase or decrease"),
                            # number to choose referrals increases
-                           div(style = "display: inline-block",
+                           div(style = "display: inline-block;",
                                numericInput("referrals_change", 
                                              "Referrals % change per year", 
                                               min = -20,
@@ -154,53 +162,55 @@ ui <- fluidPage(
                                             width = "260px"
                                             )),
                            # number to choose completed pathways increases
-                           div(style = "display: inline-block",
+                           div(style = "display: inline-block;",
                                numericInput("completed_change", 
                                             "Completed pathways % change per year", 
                                             min = -20,
                                             max = 20, 
                                             value = 7.8,
                                             width = "260px"
-                                            )),
+                                            ))),
                              
+                           ## Added a blue box border
+                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-top: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #53a9cd; border-width: 2px; border-style: solid;",
+                               ## Made the box header bold
+                               h4(style = "font-weight: 600;",
+                                  span(style = "display: inline",
+                                       "Change the number of strikes to add into the model",
+                                        ## Added an actionLink that gives a popup of the helpText
+                                        tags$sup(actionLink("helpText",
+                                                            style = "display: inline; font-size: 10px",
+                                                            label = NULL, 
+                                                            icon = icon(name = "question",
+                                                            lib = "font-awesome"))))),
                            
-                           ## Added an actionLink that gives a popup of the helpText
-                           
-                           h4(span(style = "display: inline",
-                                   "Change the number of strikes to add into the model",
-                              tags$sup(actionLink("helpText",
-                                      style = "display: inline; font-size: 10px",
-                                      label = NULL, 
-                                      icon = icon(name = "question",
-                                                  lib = "font-awesome"))))),
-                           
-                           # number of junior doctor strike days to include
-                           # number of joint strike days to include
-                           div(style = "display: inline-block",
-                               numericInput("joint", 
-                                        "Number of months of joint consultant and junior doctor strikes to include", 
-                                        min = 0,
-                                        max = 17, 
-                                        value = 17,
-                                        width = "220px"
-                           )),
-                           div(style = "display: inline-block",
-                               numericInput("jr_drs", 
-                                        "Number of months of additional junior doctor strikes to include", 
-                                        min = 0,
-                                        max = 17, 
-                                        value = 17,
-                                        width = "220px"
-                                        )),
-                           # strike intensity
-                           div(style = "display: inline-block",
-                               numericInput("intensity", 
-                                        "Strike intensity %", 
-                                        min = 0,
-                                        max = 100, 
-                                        value = 95,
-                                        width = "220px"
-                                        )),
+                               # number of junior doctor strike days to include
+                               # number of joint strike days to include
+                               div(style = "display: inline-block;",
+                                   numericInput("joint", 
+                                            "Number of months of joint consultant and junior doctor strikes to include", 
+                                            min = 0,
+                                            max = 17, 
+                                            value = 17,
+                                            width = "220px"
+                               )),
+                               div(style = "display: inline-block;",
+                                   numericInput("jr_drs", 
+                                            "Number of months of additional junior doctor strikes to include", 
+                                            min = 0,
+                                            max = 17, 
+                                            value = 17,
+                                            width = "220px"
+                                            )),
+                               # strike intensity
+                               div(style = "display: inline-block;",
+                                   numericInput("intensity", 
+                                            "Strike intensity %", 
+                                            min = 0,
+                                            max = 100, 
+                                            value = 95,
+                                            width = "220px"
+                                            ))),
                            
                            ## Removed the helpText as it is now in a popup
                            ## NOTE: Commented out in case it needs to be reinstated
