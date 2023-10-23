@@ -131,15 +131,18 @@ ui <- fluidPage(
                   # add help text at top
                   h2("Waiting list interactive calculator", style = "font-family: 'Linotype Univers 530 Medium';"),
                   
-                  fluidRow(column(12, h5("Use the interactive calculator to test out our example scenarios, 
-                              or try your own to understand how the waiting list could change 
-                              between now and January 2025 as a result of changing referrals, 
+                  fluidRow(style = "margin-bottom: 10px;",
+                           column(12, h5(style = "display: inline;", "Use the interactive calculator to test out our"),
+                                         span(style = "display: inline; color: #dd0031; font-weight: 600", "example scenarios"), 
+                              h5(style = "display:inline", "or"),
+                              span(style = 'display:inline; color:#2a7979; font-weight: 600', "create your own model"),
+                              h5(style = "display:inline", " to understand how the waiting list could change between now and January 2025 as a result of changing referrals, 
                               completed pathways and industrial action."))),
                   
                   fluidRow(
                     column(4,
                            ## Added a red box border
-                           style = "left: 10px; margin-top: 2%; margin-bottom: 2%; right: 5px; border-radius: 10px; border-color: #dd0031; border-width: 2px; border-style: solid;",
+                           style = "left: 10px; right: 5px; border-radius: 10px; border-color: #dd0031; border-width: 2px; border-style: solid;",
                            ## Made the box header bold
                            h4(style = "font-weight: 600", 
                               "Choose from an example scenario"),
@@ -148,14 +151,17 @@ ui <- fluidPage(
                     
                     column(8,
                            ## Added a blue box border
-                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-bottom: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #53a9cd; border-width: 2px; border-style: solid;",
-                           ## Made the box header bold
+                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #2a7979; border-width: 2px; border-style: solid;",
+                           ## Added a new header
                            h4(style = "font-weight: 600;",
+                              "Create your own model"),
+                           ## Made the box header bold
+                           h4(style = "font-size: 14px; font-weight: 600; margin-top: 0px; margin-bottom: 0px;",
                               "Change the percent by which new referrals and completed pathways increase or decrease"),
                            # number to choose referrals increases
                            div(style = "display: inline-block;",
                                numericInput("referrals_change", 
-                                             "Referrals % change per year", 
+                                             HTML("<span style = 'font-weight: 400'>Referrals % change per year</span>"), 
                                               min = -20,
                                               max = 20, 
                                               value = 5,
@@ -164,17 +170,15 @@ ui <- fluidPage(
                            # number to choose completed pathways increases
                            div(style = "display: inline-block;",
                                numericInput("completed_change", 
-                                            "Completed pathways % change per year", 
+                                            HTML("<span style = 'font-weight: 400'>Completed pathways % change per year</span>"), 
                                             min = -20,
                                             max = 20, 
                                             value = 7.8,
                                             width = "260px"
-                                            ))),
+                                            )),
                              
-                           ## Added a blue box border
-                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-top: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #53a9cd; border-width: 2px; border-style: solid;",
                                ## Made the box header bold
-                               h4(style = "font-weight: 600;",
+                               h4(style = "font-size: 14px; font-weight: 600; margin-top: 0px; margin-bottom: 0px;",
                                   span(style = "display: inline",
                                        "Change the number of strikes to add into the model",
                                         ## Added an actionLink that gives a popup of the helpText
@@ -188,7 +192,7 @@ ui <- fluidPage(
                                # number of joint strike days to include
                                div(style = "display: inline-block;",
                                    numericInput("joint", 
-                                            "Number of months of joint consultant and junior doctor strikes to include", 
+                                                HTML("<span style = 'font-weight: 400'>Number of months of joint consultant and junior doctor strikes to include</span>"), 
                                             min = 0,
                                             max = 17, 
                                             value = 17,
@@ -196,7 +200,7 @@ ui <- fluidPage(
                                )),
                                div(style = "display: inline-block;",
                                    numericInput("jr_drs", 
-                                            "Number of months of additional junior doctor strikes to include", 
+                                            HTML("<span style = 'font-weight: 400'>Number of months of additional junior doctor strikes to include</span>"), 
                                             min = 0,
                                             max = 17, 
                                             value = 17,
@@ -205,7 +209,7 @@ ui <- fluidPage(
                                # strike intensity
                                div(style = "display: inline-block;",
                                    numericInput("intensity", 
-                                            "Strike intensity %", 
+                                            HTML("<span style = 'font-weight: 400'>Strike intensity %</span>"), 
                                             min = 0,
                                             max = 100, 
                                             value = 95,
@@ -272,7 +276,7 @@ server <- function(input, output, session) {
     same_activity_no_strikes <- HTML("<b>Scenario 2:</b> Current growth rates, and joint strikes continue every month into January 2025")
     less_activity_strikes <- HTML("<b>Scenario 3:</b> Completed pathways activity slows, and joint strikes continue every month into January 2025") 
     more_activity_no_strikes <- HTML("<b>Scenario 4:</b> Completed pathways activity increases, with no further strike action after October 2023")
-    
+   
     choice_values <- list(1, 2, 3, 4)
     
     choice_names <- list(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
@@ -465,13 +469,13 @@ server <- function(input, output, session) {
         add_annotations(
           ## Bolded the text to make more prominent
           text = "<b>Projections</b>",
-          x = as.numeric(ymd("2023-11-15")),
-          y = max_y*.95,
+          x = as.numeric(ymd("2024-04-15")),
+          y = max_y*0.40,
           showarrow = FALSE,
           xref = "x",
           yref = "y",
           textangle = 0,
-          font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight"),
+          font = list(color = "#676361", size = textsize+4, family = "LTUnivers 330 BasicLight"),
           align = "left"
         )
       
