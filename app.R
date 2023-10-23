@@ -139,7 +139,7 @@ ui <- fluidPage(
                   fluidRow(
                     column(4,
                            ## Added a red box border
-                           style = "left: 10px; margin-top: 40px; right: 5px; border-radius: 10px; border-color: #dd0031; border-width: 2px; border-style: solid;",
+                           style = "left: 10px; margin-top: 2%; margin-bottom: 2%; right: 5px; border-radius: 10px; border-color: #dd0031; border-width: 2px; border-style: solid;",
                            ## Made the box header bold
                            h4(style = "font-weight: 600", 
                               "Choose from an example scenario"),
