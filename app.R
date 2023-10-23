@@ -123,7 +123,9 @@ ui <- fluidPage(
         HTML('* {font-family: "LTUnivers 330 BasicLight"}
              ')
       )
-            , includeHTML("www/google-tags.html")
+            , includeHTML("www/google-tags.html"),
+              ## Added download tracker
+              includeHTML("www/download_data.html")
                 ),
   
       title = ("Waiting list interactive calculator"),
