@@ -351,6 +351,13 @@ server <- function(input, output, session) {
   
   output$referrals_plot <- plotly::renderPlotly(
     { 
+      ## Moved max_y above to_plot function so that it can be used in the function
+      # get max y for plotting annotations
+      max_y <- predictions() %>% 
+        select(projected_referrals, projected_completed_pathways) %>% 
+        unlist() %>% 
+        max(na.rm = T)
+      
       # Plot referrals and completeds on same graph
       to_plot <- predictions() %>% 
         ggplot(aes(x = month_year)) +
@@ -360,7 +367,8 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>New referrals:", format(round(as.numeric(new_referrals), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize) +
-        scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
+        ## Added 5% to the y-axis limit so that there's white space for the general election annotation
+        scale_y_continuous(expand = c(0, 0), limits = c(0, max_y + (0.05*max_y)), label = unit_format(unit = "M", scale = 1e-6)) +
         theme_classic() +
         geom_line(aes(y = referrals_trend, color = "Referrals linear trend",
                       group=1,
@@ -424,11 +432,7 @@ server <- function(input, output, session) {
               , panel.grid.major.y = element_line(color = grid_colour)
               )
       
-      # get max y for plotting annotations
-      max_y <- predictions() %>% 
-        select(projected_referrals, projected_completed_pathways) %>% 
-        unlist() %>% 
-        max(na.rm = T)
+      
 
       final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
         add_annotations(
@@ -484,8 +488,8 @@ server <- function(input, output, session) {
                                   fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                   
                                   x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
-                                  
-                                  y0 = 0, y1 = 1, yref = "paper"),
+                                  ## Reduced y1 to 20/21 to reflect the 5% increase in the y-axis max 
+                                  y0 = 0, y1 = 20/21, yref = "paper"),
                              
                              ## Removed the General Election shaded area
                              ## NOTE: Have done so by commenting out in case it needs to be reinstated
@@ -502,8 +506,8 @@ server <- function(input, output, session) {
                                   fillcolor = projection_annotations, line = list(color = projection_annotations), opacity = 0.3,
                                   
                                   x0 = as.numeric(ymd("2023-08-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
-                                  
-                                  y0 = 0, y1 = 1, yref = "paper")
+                                  ## Reduced y1 to 20/21 to reflect the 5% increase in the y-axis max 
+                                  y0 = 0, y1 = 20/21, yref = "paper")
                              ),
                            
 
@@ -524,6 +528,13 @@ server <- function(input, output, session) {
   
   output$waiting_list_plot <- plotly::renderPlotly({
     
+    ## Moved max_y_wl above to_plot function so that it can be used in the function
+    # get max y for plotting annotations
+    max_y_wl <- predictions() %>% 
+      select(projected_waiting_list) %>% 
+      unlist() %>% 
+      max(na.rm = T)
+    
     to_plot <- predictions() %>%
       ggplot(aes(x = month_year)) +
       geom_col(aes(y = projected_waiting_list, fill = "Projected waiting list",
@@ -541,7 +552,8 @@ server <- function(input, output, session) {
                    , limits = c(ymd("2017-12-19"), ymd("2025-01-15"))
                    , date_labels = "%b-%y"
                    , expand = c(0,0)) +
-      scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
+      ## Added 5% to the y-axis limit so that there's white space for the general election annotation
+      scale_y_continuous(expand = c(0, 0), limits = c(0, max_y_wl + (0.05*max_y_wl)), label = unit_format(unit = "M", scale = 1e-6)) +
       theme_classic() +
       xlab("") +
       ylab("Waiting list size (millions)") +
@@ -620,8 +632,8 @@ server <- function(input, output, session) {
                                 fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                 
                                 x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
-                                
-                                y0 = 0, y1 = 1, yref = "paper")#,
+                                ## Reduced y1 to 20/21 to reflect the 5% increase in the y-axis max 
+                                y0 = 0, y1 = 20/21, yref = "paper")#,
                            
                            ## Removed the General Election shaded area
                            ## NOTE: Have done so by commenting out in case it needs to be reinstated
