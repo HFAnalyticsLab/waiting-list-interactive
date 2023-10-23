@@ -432,7 +432,8 @@ server <- function(input, output, session) {
 
       final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
         add_annotations(
-            text = "COVID-19",
+          ## Bolded for consistency with projections
+            text = "<b>COVID-19</b>",
             x = as.numeric(ymd("2020-06-15")),
             y = max_y*.95,
             showarrow = FALSE,
@@ -458,7 +459,8 @@ server <- function(input, output, session) {
           font = list(color = "#676361", size = textsize-1, family = "LTUnivers 330 BasicLight")
         ) %>%
         add_annotations(
-          text = "Projections",
+          ## Bolded the text to make more prominent
+          text = "<b>Projections</b>",
           x = as.numeric(ymd("2023-11-15")),
           y = max_y*.95,
           showarrow = FALSE,
@@ -496,8 +498,8 @@ server <- function(input, output, session) {
                              #      y0 = 0, y1 = 1, yref = "paper"),
                              
                              list(type = "rect",
-                                  
-                                  fillcolor = projection_annotations, line = list(color = projection_annotations), opacity = 0.1,
+                                  ## Changed the opacity to make it darker
+                                  fillcolor = projection_annotations, line = list(color = projection_annotations), opacity = 0.3,
                                   
                                   x0 = as.numeric(ymd("2023-08-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
                                   
@@ -564,7 +566,8 @@ server <- function(input, output, session) {
     
     final_plot <- ggplotly(to_plot, tooltip = "text") %>% 
       add_annotations(
-        text = "COVID-19",
+        ## Bolded for consistency with other chart
+        text = "<b>COVID-19</b>",
         x = as.numeric(ymd("2020-06-15")),
         y = max_y_wl*.95,
         showarrow = FALSE,
