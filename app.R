@@ -131,73 +131,112 @@ ui <- fluidPage(
                   # add help text at top
                   h2("Waiting list interactive calculator", style = "font-family: 'Linotype Univers 530 Medium';"),
                   
-                  fluidRow(column(12, h5("Use the interactive calculator to test out our example scenarios, 
-                              or try your own to understand how the waiting list could change 
-                              between now and January 2025 as a result of changing referrals, 
+                  fluidRow(style = "margin-bottom: 10px;",
+                           column(12, h5(style = "display: inline;", "Use the interactive calculator to test out our"),
+                                         span(style = "display: inline; color: #dd0031; font-weight: 600", "example scenarios"), 
+                              h5(style = "display:inline", "or"),
+                              span(style = 'display:inline; color:#2a7979; font-weight: 600', "create your own model"),
+                              h5(style = "display:inline", " to understand how the waiting list could change between now and January 2025 as a result of changing referrals, 
                               completed pathways and industrial action."))),
                   
                   fluidRow(
                     column(4,
-                           h4("Choose from an example scenario"),
+                           ## Added a red box border
+                           style = "left: 10px; right: 5px; border-radius: 10px; border-color: #dd0031; border-width: 2px; border-style: solid;",
+                           ## Made the box header bold
+                           h4(style = "font-weight: 600", 
+                              "Choose from an example scenario"),
                            
                            uiOutput("preset_server")),
                     
-                    column(4, 
-                           h4("Change the percent by which new referrals and completed pathways increase or decrease"),
+                    column(8,
+                           ## Added a blue box border
+                           div(style = "width: 100%; padding-left: 5px; padding-right: 5px; margin-left: 5px; display: inline-block; height: 100%; border-radius: 10px; border-color: #2a7979; border-width: 2px; border-style: solid;",
+                           ## Added a new header
+                           h4(style = "font-weight: 600;",
+                              "Create your own model"),
+                           ## Made the box header bold
+                           h4(style = "font-size: 14px; font-weight: 600; margin-top: 0px; margin-bottom: 0px;",
+                              "Change the percent by which new referrals and completed pathways increase or decrease"),
                            # number to choose referrals increases
-                           numericInput("referrals_change", 
-                                        "Referrals % change per year", 
-                                        min = -20,
-                                        max = 20, 
-                                        value = 5
-                                       ),
+                           div(style = "display: inline-block;",
+                               numericInput("referrals_change", 
+                                             HTML("<span style = 'font-weight: 400'>Referrals % change per year</span>"), 
+                                              min = -20,
+                                              max = 20, 
+                                              value = 5,
+                                            width = "260px"
+                                            )),
                            # number to choose completed pathways increases
-                           numericInput("completed_change", 
-                                        "Completed pathways % change per year", 
-                                        min = -20,
-                                        max = 20, 
-                                        value = 7.8
-                                        )
-                            ),
-                    column(4, 
-                           h4("Change the number of strikes to add into the model"),
-                           # number of junior doctor strike days to include
-                           # number of joint strike days to include
-                           numericInput("joint", 
-                                        "Number of months of joint consultant and junior doctor strikes to include", 
-                                        min = 0,
-                                        max = 17, 
-                                        value = 17 
-                           ),
-                           numericInput("jr_drs", 
-                                        "Number of months of additional junior doctor strikes to include", 
-                                        min = 0,
-                                        max = 17, 
-                                        value = 17 
-                                        ),
-                           # strike intensity
-                           numericInput("intensity", 
-                                        "Strike intensity %", 
-                                        min = 0,
-                                        max = 100, 
-                                        value = 95
-                                        ),
-                           # help text on strikes
-                           helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
-                                    Strike intensity is the proportion of cancellations from the previous month seen in the current month."),
+                           div(style = "display: inline-block;",
+                               numericInput("completed_change", 
+                                            HTML("<span style = 'font-weight: 400'>Completed pathways % change per year</span>"), 
+                                            min = -20,
+                                            max = 20, 
+                                            value = 7.8,
+                                            width = "260px"
+                                            )),
+                             
+                               ## Made the box header bold
+                               h4(style = "font-size: 14px; font-weight: 600; margin-top: 0px; margin-bottom: 0px;",
+                                  span(style = "display: inline",
+                                       "Change the number of strikes to add into the model",
+                                        ## Added an actionLink that gives a popup of the helpText
+                                        tags$sup(actionLink("helpText",
+                                                            style = "display: inline; font-size: 10px",
+                                                            label = NULL, 
+                                                            icon = icon(name = "question",
+                                                            lib = "font-awesome"))))),
                            
+                               # number of junior doctor strike days to include
+                               # number of joint strike days to include
+                               div(style = "display: inline-block;",
+                                   numericInput("joint", 
+                                                HTML("<span style = 'font-weight: 400'>Number of months of joint consultant and junior doctor strikes to include</span>"), 
+                                            min = 0,
+                                            max = 17, 
+                                            value = 17,
+                                            width = "220px"
+                               )),
+                               div(style = "display: inline-block;",
+                                   numericInput("jr_drs", 
+                                            HTML("<span style = 'font-weight: 400'>Number of months of additional junior doctor strikes to include</span>"), 
+                                            min = 0,
+                                            max = 17, 
+                                            value = 17,
+                                            width = "220px"
+                                            )),
+                               # strike intensity
+                               div(style = "display: inline-block;",
+                                   numericInput("intensity", 
+                                            HTML("<span style = 'font-weight: 400'>Strike intensity %</span>"), 
+                                            min = 0,
+                                            max = 100, 
+                                            value = 95,
+                                            width = "220px"
+                                            ))),
+                           
+                           ## Removed the helpText as it is now in a popup
+                           ## NOTE: Commented out in case it needs to be reinstated
+                           
+                           # help text on strikes
+                           # helpText("One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
+                           #          Strike intensity is the proportion of cancellations from the previous month seen in the current month."),
+                           # 
                            )
                         ),
 
                   
                   hr(),
                   
+                  ## Changed the order of plots
+      
+                  # plot waiting list
+                  plotly::plotlyOutput("waiting_list_plot"),
+                  
                   # plot referrals and completed
                   plotly::plotlyOutput("referrals_plot"),
                   
-                  # plot waiting list
-                  plotly::plotlyOutput("waiting_list_plot"),
-      
                   downloadButton("download_data", "Download data"),
   
                   hr(),
@@ -217,18 +256,37 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+  ## Created an observer that pops up a dialog box with the help text inside
+  
+  observeEvent(input$helpText, {
+    showModal(modalDialog(
+      title = NULL,
+      "One strike will be incorporated every month from the first month until the number of inputted strike months is reached. 
+                                    Strike intensity is the proportion of cancellations from the previous month seen in the current month.",
+      easyClose = TRUE,
+      footer = NULL,
+      size = "s"
+    ))
+  })
+  
   output$preset_server <- renderUI({
     
-    same_activity_strikes <- "Scenario 1: Current growth rates, with no further strike action after October 2023"
-    same_activity_no_strikes <- "Scenario 2: Current growth rates, and joint strikes continue every month into January 2025"
-    less_activity_strikes <- "Scenario 3: Completed pathways activity slows, and joint strikes continue every month into January 2025" 
-    more_activity_no_strikes <- "Scenario 4: Completed pathways activity increases, with no further strike action after October 2023"
+    ## Bolded the Scenarios to make them stand out
+    same_activity_strikes <- HTML("<b>Scenario 1:</b> Current growth rates, with no further strike action after October 2023")
+    same_activity_no_strikes <- HTML("<b>Scenario 2:</b> Current growth rates, and joint strikes continue every month into January 2025")
+    less_activity_strikes <- HTML("<b>Scenario 3:</b> Completed pathways activity slows, and joint strikes continue every month into January 2025") 
+    more_activity_no_strikes <- HTML("<b>Scenario 4:</b> Completed pathways activity increases, with no further strike action after October 2023")
+   
+    choice_values <- list(1, 2, 3, 4)
     
-    choice_values <- 1:4
+    choice_names <- list(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
     
-    names(choice_values) <- c(same_activity_strikes, same_activity_no_strikes, less_activity_strikes, more_activity_no_strikes)
-    
-    radioButtons("preset", "Choose an example scenario", choices = choice_values)
+    ## Removed the label (but kept a line break) as its redundant since the column has a title
+    radioButtons("preset", 
+                 width = "100%",
+                 label = NULL, 
+                 choiceNames = choice_names,
+                 choiceValues = choice_values)
   })
   
   observe({
@@ -297,6 +355,13 @@ server <- function(input, output, session) {
   
   output$referrals_plot <- plotly::renderPlotly(
     { 
+      ## Moved max_y above to_plot function so that it can be used in the function
+      # get max y for plotting annotations
+      max_y <- predictions() %>% 
+        select(projected_referrals, projected_completed_pathways) %>% 
+        unlist() %>% 
+        max(na.rm = T)
+      
       # Plot referrals and completeds on same graph
       to_plot <- predictions() %>% 
         ggplot(aes(x = month_year)) +
@@ -306,7 +371,8 @@ server <- function(input, output, session) {
                         format(month_year, "%B %Y"), 
                         "<br>New referrals:", format(round(as.numeric(new_referrals), 1), nsmall=1, big.mark=","))),
                   linewidth = linesize) +
-        scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
+        ## Added 5% to the y-axis limit so that there's white space for the general election annotation
+        scale_y_continuous(expand = c(0, 0), limits = c(0, max_y + (0.05*max_y)), label = unit_format(unit = "M", scale = 1e-6)) +
         theme_classic() +
         geom_line(aes(y = referrals_trend, color = "Referrals linear trend",
                       group=1,
@@ -334,7 +400,8 @@ server <- function(input, output, session) {
                   linewidth = linesize) +
         scale_x_date(date_breaks = "1 year"
                      , date_minor_breaks = "3 months"
-                     , limits = c(ymd("2016-04-01"), ymd("2025-01-15"))
+                     ## Changed start date of chart to January 2018
+                     , limits = c(ymd("2018-01-01"), ymd("2025-01-15"))
                      , date_labels = "%b-%y"
                      , expand = c(0, 0)) +
         geom_line(aes(y = activity_trend, color = "Completed pathways linear trend",
@@ -369,15 +436,12 @@ server <- function(input, output, session) {
               , panel.grid.major.y = element_line(color = grid_colour)
               )
       
-      # get max y for plotting annotations
-      max_y <- predictions() %>% 
-        select(projected_referrals, projected_completed_pathways) %>% 
-        unlist() %>% 
-        max(na.rm = T)
+      
 
       final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
         add_annotations(
-            text = "COVID-19",
+          ## Bolded for consistency with projections
+            text = "<b>COVID-19</b>",
             x = as.numeric(ymd("2020-06-15")),
             y = max_y*.95,
             showarrow = FALSE,
@@ -403,14 +467,15 @@ server <- function(input, output, session) {
           font = list(color = "#676361", size = textsize-1, family = "LTUnivers 330 BasicLight")
         ) %>%
         add_annotations(
-          text = "Projections",
-          x = as.numeric(ymd("2023-11-15")),
-          y = max_y*.95,
+          ## Bolded the text to make more prominent
+          text = "<b>Projections</b>",
+          x = as.numeric(ymd("2024-04-15")),
+          y = max_y*0.40,
           showarrow = FALSE,
           xref = "x",
           yref = "y",
           textangle = 0,
-          font = list(color = "#676361", size = textsize, family = "LTUnivers 330 BasicLight"),
+          font = list(color = "#676361", size = textsize+4, family = "LTUnivers 330 BasicLight"),
           align = "left"
         )
       
@@ -421,27 +486,32 @@ server <- function(input, output, session) {
                            shapes = list(
                              list(type = "rect",
                                   
+                                  ## Moved the Covid-19 shading below the lines
+                                  layer = "below",
+                                  
                                   fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                   
                                   x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
-                                  
-                                  y0 = 0, y1 = 1, yref = "paper"),
+                                  ## Reduced y1 to 20/21 to reflect the 5% increase in the y-axis max 
+                                  y0 = 0, y1 = 20/21, yref = "paper"),
+                             
+                             ## Removed the General Election shaded area
+                             ## NOTE: Have done so by commenting out in case it needs to be reinstated
+                             # list(type = "rect",
+                             #      
+                             #      fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
+                             #      
+                             #      x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
+                             #      
+                             #      y0 = 0, y1 = 1, yref = "paper"),
                              
                              list(type = "rect",
-                                  
-                                  fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
-                                  
-                                  x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
-                                  
-                                  y0 = 0, y1 = 1, yref = "paper"),
-                             
-                             list(type = "rect",
-                                  
-                                  fillcolor = projection_annotations, line = list(color = projection_annotations), opacity = 0.1,
+                                  ## Changed the opacity to make it darker
+                                  fillcolor = projection_annotations, line = list(color = projection_annotations), opacity = 0.3,
                                   
                                   x0 = as.numeric(ymd("2023-08-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
-                                  
-                                  y0 = 0, y1 = 1, yref = "paper")
+                                  ## Reduced y1 to 20/21 to reflect the 5% increase in the y-axis max 
+                                  y0 = 0, y1 = 20/21, yref = "paper")
                              ),
                            
 
@@ -462,6 +532,13 @@ server <- function(input, output, session) {
   
   output$waiting_list_plot <- plotly::renderPlotly({
     
+    ## Moved max_y_wl above to_plot function so that it can be used in the function
+    # get max y for plotting annotations
+    max_y_wl <- predictions() %>% 
+      select(projected_waiting_list) %>% 
+      unlist() %>% 
+      max(na.rm = T)
+    
     to_plot <- predictions() %>%
       ggplot(aes(x = month_year)) +
       geom_col(aes(y = projected_waiting_list, fill = "Projected waiting list",
@@ -474,10 +551,13 @@ server <- function(input, output, session) {
                      "<br>Waiting list:", format(round(as.numeric(waiting_list), 0), nsmall=0, big.mark=","))))  +
       scale_x_date(date_breaks = "1 year"
                    , date_minor_breaks = "3 months"
-                   , limits = c(ymd("2016-04-01"), ymd("2025-01-15"))
+                   ## Changed start date of chart to January 2018
+                   ## NOTE: Start date defined as 2017-12-19 in order to make sure that January 2018 bar displays on chart
+                   , limits = c(ymd("2017-12-19"), ymd("2025-01-15"))
                    , date_labels = "%b-%y"
                    , expand = c(0,0)) +
-      scale_y_continuous(expand = c(0, 0), limits = c(0, NA), label = unit_format(unit = "M", scale = 1e-6)) +
+      ## Added 5% to the y-axis limit so that there's white space for the general election annotation
+      scale_y_continuous(expand = c(0, 0), limits = c(0, max_y_wl + (0.05*max_y_wl)), label = unit_format(unit = "M", scale = 1e-6)) +
       theme_classic() +
       xlab("") +
       ylab("Waiting list size (millions)") +
@@ -502,7 +582,8 @@ server <- function(input, output, session) {
     
     final_plot <- ggplotly(to_plot, tooltip = "text") %>% 
       add_annotations(
-        text = "COVID-19",
+        ## Bolded for consistency with other chart
+        text = "<b>COVID-19</b>",
         x = as.numeric(ymd("2020-06-15")),
         y = max_y_wl*.95,
         showarrow = FALSE,
@@ -549,19 +630,25 @@ server <- function(input, output, session) {
                          shapes = list(
                            list(type = "rect",
                                 
+                                ## Moved the Covid-19 shading below the lines
+                                layer = "below",
+                                
                                 fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
                                 
                                 x0 = as.numeric(ymd("2020-03-01")), x1 = as.numeric(ymd("2021-04-01")), xref = "x",
-                                
-                                y0 = 0, y1 = 1, yref = "paper"),
+                                ## Reduced y1 to 20/21 to reflect the 5% increase in the y-axis max 
+                                y0 = 0, y1 = 20/21, yref = "paper")#,
                            
-                           list(type = "rect",
-                                
-                                fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
-                                
-                                x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
-                                
-                                y0 = 0, y1 = 1, yref = "paper")),
+                           ## Removed the General Election shaded area
+                           ## NOTE: Have done so by commenting out in case it needs to be reinstated
+                           # list(type = "rect",
+                           #      
+                           #      fillcolor = thf_annotations, line = list(color = thf_annotations), opacity = 0.2,
+                           #      
+                           #      x0 = as.numeric(ymd("2024-12-01")), x1 = as.numeric(ymd("2025-01-01")), xref = "x",
+                           #      
+                           #      y0 = 0, y1 = 1, yref = "paper")
+                           ),
                          
                          xaxis = list(tickangle = 315),
                          
