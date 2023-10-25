@@ -22,8 +22,8 @@ workdays_table <- readRDS("data/workdays_table.RDS")
 latest_data <- ymd("2023-08-01")
 
 latest_workdays <- rtt_data[rtt_data$month_year == latest_data,]$workdays
-latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_trend 
-latest_completed <- rtt_data[rtt_data$month_year == latest_data,]$activity_trend
+latest_referrals <- rtt_data[rtt_data$month_year == latest_data,]$referrals_day_trend
+latest_completed <- rtt_data[rtt_data$month_year == latest_data,]$activity_day_trend
 latest_waitlist <- rtt_data[rtt_data$month_year == latest_data,]$waiting_list
 latest_referrals_actual <- rtt_data[rtt_data$month_year == latest_data,]$new_referrals
 latest_completed_actual <- rtt_data[rtt_data$month_year == latest_data,]$total_activity
@@ -307,10 +307,10 @@ server <- function(input, output, session) {
       time_df %>%
         mutate(projected_referrals = if_else(month_no == 0
                                                , latest_referrals_actual
-                                               , (latest_referrals/latest_workdays) * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
+                                               , latest_referrals * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
              , projected_completed_pathways = if_else(month_no == 0
                                                , latest_completed_actual
-                                               , (latest_completed/latest_workdays) * monthlyRate(input$completed_change)^month_no * workdays * activity_seasonality)
+                                               , latest_completed * monthlyRate(input$completed_change)^month_no * workdays * activity_seasonality)
         ) %>% 
 
         
