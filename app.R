@@ -79,6 +79,8 @@ monthlyRate <- function(x) {
   (1+(x/100))^(1/12)
 }
 
+###### column to exclude first row for cumulative sum waiting list ######
+skip_first <- c (FALSE, rep (TRUE, nrow (time_df)-1))
 
 ###### colours and settings #####
 
@@ -343,8 +345,12 @@ server <- function(input, output, session) {
         # get new waiting list number
         # cumulative sum of referrals (up to t-1), - completed (at t-1), and adding to latest waiting list
         
-        mutate(projected_waiting_list = latest_waitlist + cumsum(lag(projected_referrals, default = 0)) - cumsum(lag(projected_completed_pathways, default = 0))) %>% 
+        mutate(cumsum_referrals_input = projected_referrals * skip_first) %>%
         
+        mutate(cumsum_activity_input = projected_completed_pathways * skip_first) %>%
+        
+        mutate(projected_waiting_list = latest_waitlist + cumsum(cumsum_referrals_input) - cumsum(cumsum_activity_input)) %>%
+
         # join the original dataset
         full_join(rtt_data, by = c("month_year", "workdays", "referrals_seasonality", "activity_seasonality")) 
     }
