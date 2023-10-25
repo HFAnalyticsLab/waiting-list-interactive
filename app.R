@@ -56,6 +56,7 @@ jr_dr_sep23_actual_cancellations <- 52281
 jr_dr_oct23_actual_cancellations <- 0
 
 jr_dr_sep23 <- jr_dr_sep23_actual_cancellations * perc_result_completed_pathway
+jr_dr_oct23 <- jr_dr_oct23_actual_cancellations * perc_result_completed_pathway
 
 joint_sep23_actual_cancellations <- 77632
 joint_sep23 <- joint_sep23_actual_cancellations * perc_result_completed_pathway
@@ -317,12 +318,14 @@ server <- function(input, output, session) {
         # include effect of strikes
         # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
         # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
-        mutate(jr_dr_cancellations = case_when(input$jr_drs + 2 > month_no & month_no >= 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 2)
+        mutate(jr_dr_cancellations = case_when(input$jr_drs + 2 > month_no & month_no > 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 2)
                                                , month_no == 1 ~ jr_dr_sep23
+                                               , month_no == 2 ~ jr_dr_oct23
                                                , TRUE ~ 0)
-               , joint_cancellations =  case_when(input$joint + 2 > month_no & month_no >= 2 ~ joint_start_val * (input$intensity/100)^(month_no - 2)
-                                                       , month_no == 1 ~ joint_sep23                                                   
-                                                       , TRUE ~ 0)
+               , joint_cancellations =  case_when(input$joint + 2 > month_no & month_no > 2 ~ joint_start_val * (input$intensity/100)^(month_no - 2)
+                                                  , month_no == 1 ~ joint_sep23
+                                                  , month_no == 2 ~ joint_oct23
+                                                  , TRUE ~ 0)
         ) %>%
         
         mutate(projected_completed_pathways = projected_completed_pathways - jr_dr_cancellations - joint_cancellations) %>%
