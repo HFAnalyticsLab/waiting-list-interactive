@@ -1,4 +1,4 @@
-# The Health Foundation Elective Care Waiting List Interactive Calculator
+# Elective Care Waiting List Interactive Calculator
 
 #### Project Status: [In progress]
 
@@ -24,7 +24,8 @@ All data is publicly available (as described above) and all code is included in 
 
 Authors: Kathryn Marszalek, Melissa Co, Tim Gardner, Freya Tracey, Charles Tallack
 Code in this repo contributed by: Melissa Co, Chris Beeley, Marc Brazzill, Tatjana Marks, Kathryn Marszalek, Freya Tracey
+Special thanks to Ellen Coughlan and Paul Chappell for their support and insights.
 
 ## License
 
-## Acknowledgments
+This project is licensed under the [MIT License](https://opensource.org/license/mit/).
