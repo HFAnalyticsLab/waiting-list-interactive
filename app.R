@@ -1,4 +1,4 @@
-## Elective care pledge Shiny app ##
+## Waiting list interactive calculator ##
 
 # load packages
 library(janitor)
@@ -254,9 +254,6 @@ ui <- fluidPage(
 
 ##### Server logic #####
 
-# below are some input values for testing outside app -- should comment out otherwise
-# input <- data.frame(seasonality = "seasonal", jr_drs = 7, joint = 5, referrals_change = 5, completed_change = 5, intensity = 85)
-
 server <- function(input, output, session) {
   
   ## Created an observer that pops up a dialog box with the help text inside
@@ -308,6 +305,8 @@ server <- function(input, output, session) {
   predictions <- reactive(
     {
       time_df %>%
+        
+        # get initial projections, not adjusted for industrial action
         mutate(projected_referrals = if_else(month_no == 0
                                                , latest_referrals_actual
                                                , latest_referrals * monthlyRate(input$referrals_change)^month_no * workdays * referrals_seasonality)      
@@ -317,9 +316,7 @@ server <- function(input, output, session) {
         ) %>% 
 
         
-        # include effect of strikes
-        # if month index is less than the round-up input value of strike days (divided by ), don't add strike days
-        # if it is equal to number of round-up input, assign the remainder of days. otherwise give a 3.
+        # include effect of future strikes after those already announced
         mutate(jr_dr_cancellations = case_when(input$jr_drs + 2 > month_no & month_no > 2 ~ jr_dr_start_val * (input$intensity/100)^(month_no - 2)
                                                , month_no == 1 ~ jr_dr_sep23
                                                , month_no == 2 ~ jr_dr_oct23
@@ -330,8 +327,10 @@ server <- function(input, output, session) {
                                                   , TRUE ~ 0)
         ) %>%
         
+        # subtract out cancellations due to strikes from projected completed pathways
         mutate(projected_completed_pathways = projected_completed_pathways - jr_dr_cancellations - joint_cancellations) %>%
         
+        # take linear trends from the projections for graphing
         mutate(projected_completed_pathways_linear = if_else(month_no > 0, predict(lm(projected_completed_pathways ~ month_no, data = data.frame(month_no = seq(0, interval(latest_data, ymd("2025-01-01")) %/% months(1)))
                                          )
                                       ), NA_real_)
@@ -342,8 +341,7 @@ server <- function(input, output, session) {
                                         ), NA_real_)
         ) %>% 
         
-        # get new waiting list number
-        # cumulative sum of referrals (up to t-1), - completed (at t-1), and adding to latest waiting list
+        # get new waiting list number based on cumulative sum of referrals and completed activity projections
         
         mutate(cumsum_referrals_input = projected_referrals * skip_first) %>%
         
@@ -360,11 +358,9 @@ server <- function(input, output, session) {
   
   
   #### Referrals and completed plot ####
-  # To do: can the if/else be implemented into one ggplot code so easier to update with colours etc.?
-  
+
   output$referrals_plot <- plotly::renderPlotly(
     { 
-      ## Moved max_y above to_plot function so that it can be used in the function
       # get max y for plotting annotations
       max_y <- predictions() %>% 
         select(projected_referrals, projected_completed_pathways) %>% 
@@ -447,7 +443,7 @@ server <- function(input, output, session) {
       
       
 
-      final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed, not also the default 
+      final_plot <- ggplotly(to_plot, tooltip = "text") %>%  #Need to add tooltip argument so only text that is manually created above is displayed 
         add_annotations(
           ## Bolded for consistency with projections
             text = "<b>COVID-19</b>",
@@ -541,7 +537,6 @@ server <- function(input, output, session) {
   
   output$waiting_list_plot <- plotly::renderPlotly({
     
-    ## Moved max_y_wl above to_plot function so that it can be used in the function
     # get max y for plotting annotations
     max_y_wl <- predictions() %>% 
       select(projected_waiting_list) %>% 
