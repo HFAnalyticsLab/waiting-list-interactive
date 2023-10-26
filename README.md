@@ -1,10 +1,8 @@
 # Elective Care Waiting List Interactive Calculator
 
-#### Project Status: [In progress]
-
 ## Description
 
-This repository includes code for The Health Foundation's [Waiting List Interactive Calculator](https://thehealthfoundation.shinyapps.io/waiting-list-interactive/). Full information on background, context, and methods can be found in the corresponding [article]() and [technical appendix](). 
+This repository includes code used to create The Health Foundation's [Waiting List Interactive Calculator](https://thehealthfoundation.shinyapps.io/waiting-list-interactive/). Full information on background, context, and methods can be found in the corresponding [article]() and [technical appendix](). 
 
 ## Data sources
 
@@ -16,9 +14,9 @@ Data on industrial action is taken from the [Potential industrial action in the 
 
 These scripts were written in R version 4.0.2 and RStudio Version 1.1.383. 
 
-Package versions have been tracked using [renv](https://rstudio.github.io/renv/articles/renv.html). 
+Package requirements and versions have been tracked using the [renv](https://rstudio.github.io/renv/articles/renv.html) lockfile included in the repo. 
 
-All data is publicly available (as described above) and all code is included in this repo, although the app.R script references copyright images and font files which are not publicly available.
+All data is publicly available (as described above). Data needed to run the app are included in the `data` folder of this repo, including the RTT data used and a lookup table on number of working days per month. All necessary code is included in this repo, although `app.R` references copyright images and font files which are not publicly available. 
 
 ## Contributors
 
