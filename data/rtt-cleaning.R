@@ -1,4 +1,4 @@
-##### RTT Data Cleaning for Shiny app #####
+##### Clean RTT data for waiting list interactive calculator #####
 
 # load packages
 library(readxl)
@@ -34,7 +34,7 @@ latest_data <- ymd("2023-08-01")
 
 rtt_data <- rtt_data_raw %>% 
   
-  # select only cols of interest- total waiting, new referrals, non admitted, admitted
+  # select only columns of interest
   select(month_year
          , incomplete_total_waiting_mil_with_estimates_for_missing_data
          , new_referrals_no_of_new_rtt_periods_with_estimates_for_missing_data
@@ -50,24 +50,24 @@ rtt_data <- rtt_data_raw %>%
     , completed_admitted = admitted_unadj_no_of_pathways_all_with_estimates_for_missing_data
   ) %>% 
   
-  # convert month year to lubridate and get total completed
+  # convert month year get total completed
   mutate(
     month_year = ymd(month_year)
     , completed_total = completed_admitted + completed_non_admitted
   ) %>% 
 
-  # get total outflow
+  # get total activity/outflow
   mutate(
     waiting_list_last_val = lag(waiting_list) # find the last value-- doing explicitly for QA purposes
   , total_activity = waiting_list_last_val - waiting_list + new_referrals
   , other_reasons = total_activity - completed_total
   ) %>% 
   
-  # just include data from FY 2016 to June 2023
+  # only include data from FY 2016 to June 2023
   filter(month_year >= ymd("2016-04-01") & month_year <= latest_data) 
   
   
-###### daily seasonality #####
+###### Calculate daily seasonality #####
 
 # read in CSV with number of working days each month 
 workdays_table <- read.csv("data/working-days-table.csv") %>% 
@@ -81,7 +81,7 @@ rtt_data <- rtt_data %>%
   # get financial year 
   mutate(fin_year = floor(quarter(month_year, with_year = TRUE, fiscal_start = 4))) 
 
-# for seasonality: limit to up to FY18/19, calculate a daily rate, get yearly average, get the residual between month and year, and get avg deviance from yearly average 
+# Create a table of seasonality multiplicative factors
 seasonality <- rtt_data %>% 
   filter(month_year < ymd("2019-04-01")) %>% 
   # group by year to get a yearly average
@@ -97,7 +97,7 @@ seasonality <- rtt_data %>%
   summarise(referrals_seasonality = mean(referrals_diff)
             , activity_seasonality = mean(activity_diff))
 
-##### get trendlines for pre and post-pandemic ahead of time #####
+##### Get trendlines for pre and post-pandemic #####
 
 # Add a month number column 
 rtt_data <- rtt_data %>% 
@@ -105,6 +105,7 @@ rtt_data <- rtt_data %>%
          , month = month(month_year)) %>% 
   left_join(seasonality, by = "month")
 
+# fit linear trend to day rates of referrals and completed pathways
 pre_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
 post_pandemic_referrals_day <- lm(new_referrals_day_rate/referrals_seasonality ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),])
 pre_pandemic_activity_day <- lm(total_activity_day_rate/activity_seasonality ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
@@ -112,7 +113,7 @@ post_pandemic_activity_day <- lm(total_activity_day_rate/activity_seasonality ~ 
 
 
 # fit a line to pre and post pandemic referrals and completed
-# for post-pandemic, only use up to march 23 for completeds (IA starts then)
+# for post-pandemic, only use up to march 23 for completeds (IA starts after this)
 pre_pandemic_referrals_day_line <- predict(pre_pandemic_referrals_day)
 post_pandemic_referrals_day_line <- predict(post_pandemic_referrals_day)
 pre_pandemic_activity_day_line <- predict(pre_pandemic_activity_day)
@@ -126,7 +127,7 @@ post_pandemic_activity_day_line <- predict(post_pandemic_activity_day)
 no_ia_counterfactual <- data.frame(month_year = seq(ymd("2023-03-01"), latest_data, by = "months")) %>% 
   mutate(month_no = interval(ymd("2016-03-01"), month_year) %/% months(1))
 
-# put predictions together to get day trendlines
+# put projections together to get day trendlines for graphing later
 rtt_data$referrals_day_trend <- c(pre_pandemic_referrals_day_line
                               , rep(NA_real_, 14)
                               , post_pandemic_referrals_day_line)
@@ -140,7 +141,7 @@ rtt_data <- rtt_data %>%
   mutate(referrals_day_to_month = referrals_day_trend * workdays * referrals_seasonality
          , activity_day_to_month = activity_day_trend * workdays * activity_seasonality)
 
-# get a monthly trendline based on "predicted" monthly rates
+# get a monthly trendline based on projected monthly rates
 pre_pandemic_referrals <- lm(referrals_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
 post_pandemic_referrals <- lm(referrals_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year > ymd("2021-04-01"),])
 pre_pandemic_activity <- lm(activity_day_to_month ~ month_no, data = rtt_data[rtt_data$month_year < ymd("2020-03-01"),])
@@ -154,7 +155,7 @@ pre_pandemic_activity_line <- predict(pre_pandemic_activity)
 post_pandemic_activity_line <- predict(post_pandemic_activity)
 
 
-# put predictions together to get month trendlines
+# put projections together to get month trendlines
 rtt_data$referrals_trend <- c(pre_pandemic_referrals_line
                                   , rep(NA_real_, 14)
                                   , post_pandemic_referrals_line)
