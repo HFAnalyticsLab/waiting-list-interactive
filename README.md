@@ -16,7 +16,7 @@ These scripts were written in R version 4.0.2 and RStudio Version 1.1.383.
 
 Package requirements and versions have been tracked using the [renv](https://rstudio.github.io/renv/articles/renv.html) lockfile included in the repo. 
 
-All data is publicly available (as described above). Data needed to run the app are included in the `data` folder of this repo, including the RTT data used and a lookup table on number of working days per month. All necessary code is included in this repo, although `app.R` references copyright images and font files which are not publicly available. 
+All data is publicly available (as described above). Data needed to run the app are included in the `data` folder of this repo, including the RTT data used and a lookup table on number of working days per month. All necessary code is included in this repo, although some scripts reference copyright images and font files which are not publicly available. 
 
 ## Contributors
 
