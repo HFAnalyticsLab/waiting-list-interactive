@@ -1,29 +1,33 @@
-# Elective care waiting times interactive app
+# Elective Care Waiting List Interactive Calculator
 
 #### Project Status: [In progress]
 
-## Project Description and data sources
+## Description
 
-Following the PM's pledge to shrink the waiting list by the next general election, we are developing an interactive app which shows how the waiting list has changed based on the numbers of new referrals to elective care and numbers of outflow per month. 
+This repository includes code for The Health Foundation's [Waiting List Interactive Calculator](https://thehealthfoundation.shinyapps.io/waiting-list-interactive/). Full information on background, context, and methods can be found in the corresponding [article]() and [technical appendix](). 
 
-## How does it work?
+## Data sources
 
-This relies on publicly-available referral to treatment data (https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/).
+Data on referrals, completed pathways and the waiting list from April 2016 onward are taken from the [Referral to Treatment (RTT) Waiting Times dataset](https://www.england.nhs.uk/statistics/statistical-work-areas/rtt-waiting-times/). Numbers with estimates for missing values for RTT pathways and waiting list size  were used.
 
-### Requirements
+Data on industrial action is taken from the [Potential industrial action in the NHS webpage](https://www.england.nhs.uk/publication/preparedness-for-potential-industrial-action-in-the-nhs/). This provides the number of elective procedures and outpatient appointments that were rescheduled as a result of industrial action.
+
+## Requirements
 
 These scripts were written in R version 4.0.2 and RStudio Version 1.1.383. 
-The following R packages (available on CRAN) are needed: 
-* [**tidyverse**](https://www.tidyverse.org/)
-* [**janitor**]
-* [**Shiny**]
-* [**readxl**]
-* [**zoo**]
 
-The list above is non exhaustive, but each of the individual .R codes in this repository indicates which packages are needed.
+Package versions have been tracked using [renv](https://rstudio.github.io/renv/articles/renv.html). 
 
-## Authors
+All data is publicly available (as described above) and all code is included in this repo, although the app.R script references copyright images and font files which are not publicly available.
+
+## Contributors
+
+Authors: Kathryn Marszalek, Melissa Co, Tim Gardner, Freya Tracey, Charles Tallack
+
+Code in this repo contributed by: Melissa Co, Chris Beeley, Marc Brazzill, Tatjana Marks, Kathryn Marszalek, Freya Tracey
+
+Special thanks to Ellen Coughlan and Paul Chappell for their support and insights.
 
 ## License
 
-## Acknowledgments
+This project is licensed under the [MIT License](https://opensource.org/license/mit/).
