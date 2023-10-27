@@ -2,7 +2,7 @@
 
 ## Description
 
-This repository includes code used to create The Health Foundation's [Waiting List Interactive Calculator](https://thehealthfoundation.shinyapps.io/waiting-list-interactive/). Full information on background, context, and methods can be found in the corresponding [article]() and [technical appendix](). 
+This repository includes code used to create The Health Foundation's [Waiting List Interactive Calculator](https://thehealthfoundation.shinyapps.io/waiting-list-interactive/) which was published in our long read [The NHS waiting list: when will it peak?](https://www.health.org.uk/waiting-list). Full information on background, context, and methods can be found in the [technical appendix](https://www.health.org.uk/sites/default/files/2023-10/Waiting%20list%20technical%20appendix_0.pdf) and corresponding article. 
 
 ## Data sources
 
